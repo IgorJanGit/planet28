@@ -1,3 +1,13 @@
+{% set trait_effects_dict = {} %}
+{% for trait in traits %}
+    {% set _ = trait_effects_dict.update({trait['name']: trait['effect']}) %}
+{% endfor %}
+
+{% set ability_effects_dict = {} %}
+{% for ab in abilities %}
+    {% set _ = ability_effects_dict.update({ab['name']: ab['effect']}) %}
+{% endfor %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -25,16 +35,16 @@
             text-align: center;
             padding: 2px 4px;
         }
-    .sheet-section-title { font-weight: bold; margin-top: 4px; margin-bottom: 6px; }
-    .sheet-flex { display: flex; gap: 0; }
-    .sheet-half { width: 50%; border-right: 1.5px solid #bbb; box-sizing: border-box; background: #fafbfc; }
-    .sheet-half:last-child { border-right: none; }
-    .sheet-quarter-inner { padding: 10px 12px; min-height: 40px; }
+        .sheet-section-title { font-weight: bold; margin-top: 4px; margin-bottom: 6px; }
+        .sheet-flex { display: flex; gap: 0; }
+        .sheet-half { width: 50%; border-right: 1.5px solid #bbb; box-sizing: border-box; background: #fafbfc; }
+        .sheet-half:last-child { border-right: none; }
+        .sheet-quarter-inner { padding: 10px 12px; min-height: 40px; }
         .sheet-list { min-height: 40px; margin: 0; padding-left: 16px; }
         .sheet-list li { text-align: left; }
         .sheet-label { font-weight: bold; }
         .sheet-row:last-child, .sheet-section:last-child { border-bottom: none; }
-    .sheet-nav { text-align: center; margin: 22px 0 0 0; }
+        .sheet-nav { text-align: center; margin: 22px 0 0 0; }
         .btn { padding: 8px 18px; border-radius: 4px; border: none; background: #222; color: #fff; font-weight: bold; text-decoration: none; margin-right: 8px; }
         .btn:hover { background: #444; }
         input[type="text"], input[type="number"], select {
@@ -52,83 +62,354 @@
 <div style="text-align:center;margin-bottom:10px;font-size:1.1em;">
     <b>Warband Points Limit:</b> {{ warband_points }}
 </div>
+
 <form action="/edit_character/{{ warband }}/{{ character['Name'] }}" method="post" autocomplete="off">
-<div class="sheet-box">
-    <div class="sheet-header">Edit Character: <input type="text" name="Name" value="{{ character['Name'] }}" style="width:120px; font-weight:bold; font-size:1em; border:1px solid #888; padding:2px 4px;"> </div>
-    <div class="sheet-row">
-        <span class="sheet-label">Points cost:</span>
-        <input type="number" name="Points" value="{{ character['Points'] }}" style="width:60px;">
-    </div>
-    <div class="sheet-row">
-        <table class="sheet-table">
-            <tr><th>Agility</th><th>Shooting</th><th>Fighting</th><th>Psyche</th><th>Awareness</th></tr>
-            <tr>
-                <td><input type="number" name="Agility" value="{{ character['Skills']['Agility'] }}" style="width:40px;"></td>
-                <td><input type="number" name="Shooting" value="{{ character['Skills']['Shooting'] }}" style="width:40px;"></td>
-                <td><input type="number" name="Fighting" value="{{ character['Skills']['Fighting'] }}" style="width:40px;"></td>
-                <td><input type="number" name="Psyche" value="{{ character['Skills']['Psyche'] }}" style="width:40px;"></td>
-                <td><input type="number" name="Awareness" value="{{ character['Skills']['Awareness'] }}" style="width:40px;"></td>
-            </tr>
-        </table>
-    </div>
-    <div class="sheet-row">
-        <table class="sheet-table">
-            <tr><td>Speed</td><td>Hit-points</td></tr>
-            <tr>
-                <td><input type="number" name="Speed" value="{{ character['Speed'] }}" style="width:60px;"></td>
-                <td><input type="number" name="Hitpoints" value="{{ character['Hit-points'] }}" style="width:60px;"></td>
-            </tr>
-        </table>
-    </div>
-    <div class="sheet-section">
-    <div class="sheet-section-title">Traits:</div>
-        <div id="trait-list-box">
-            <input type="hidden" name="Traits" id="traits-hidden-input" value="{{ character['Traits']|join(', ') }}">
-            {% set trait_effects_dict = {} %}
-            {% for trait in traits %}
-                {% set norm_name = trait['name']|lower|trim %}
-                {% set _ = trait_effects_dict.update({norm_name: trait['effect']}) %}
-            {% endfor %}
-            <ul id="trait-list" class="sheet-list" style="margin-bottom:6px;">
-            {% for trait in character['Traits'] %}
-                <li>
-                    {{ trait }}
-                    <button type="button" class="show-effect-btn" data-trait="{{ trait }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
-                    <button type="button" class="remove-trait-btn" data-trait="{{ trait }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
-                    <div class="trait-effect-inline" data-trait="{{ trait }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-                </li>
-            {% else %}
-                <li>-</li>
-            {% endfor %}
-            </ul>
-            <button type="button" id="toggle-all-trait-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all trait effects</button>
-            <div id="all-trait-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-            <!-- DEBUG: Show trait_effects_dict and character['Traits'] (safe for undefined) -->
-            <div style="background:#ffe;border:1px solid #cc0;padding:6px 10px;margin:8px 0 8px 0;font-size:0.95em;color:#a60;">
-                <b>Debug:</b><br>
-                <b>trait_effects_dict:</b> {{ trait_effects_dict|default({})|tojson }}<br>
-                <b>character['Traits']:</b> {{ character['Traits']|default([])|join(', ') }}
+    <div class="sheet-box">
+        <div class="sheet-header">Edit Character: <input type="text" name="Name" value="{{ character['Name'] }}" style="width:120px; font-weight:bold; font-size:1em; border:1px solid #888; padding:2px 4px;"> </div>
+        
+        <div class="sheet-row">
+            <span class="sheet-label">Points cost:</span>
+            <input type="number" name="Points" value="{{ character['Points'] }}" style="width:60px;">
+        </div>
+
+        <div class="sheet-row">
+            <table class="sheet-table">
+                <tr><th>Agility</th><th>Shooting</th><th>Fighting</th><th>Psyche</th><th>Awareness</th></tr>
+                <tr>
+                    <td><input type="number" name="Agility" value="{{ character['Skills']['Agility'] }}" style="width:40px;"></td>
+                    <td><input type="number" name="Shooting" value="{{ character['Skills']['Shooting'] }}" style="width:40px;"></td>
+                    <td><input type="number" name="Fighting" value="{{ character['Skills']['Fighting'] }}" style="width:40px;"></td>
+                    <td><input type="number" name="Psyche" value="{{ character['Skills']['Psyche'] }}" style="width:40px;"></td>
+                    <td><input type="number" name="Awareness" value="{{ character['Skills']['Awareness'] }}" style="width:40px;"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="sheet-row">
+            <table class="sheet-table">
+                <tr><td>Speed</td><td>Hit-points</td></tr>
+                <tr>
+                    <td><input type="number" name="Speed" value="{{ character['Speed'] }}" style="width:60px;"></td>
+                    <td><input type="number" name="Hitpoints" value="{{ character['Hit-points'] }}" style="width:60px;"></td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="sheet-section">
+            <div class="sheet-section-title">Traits:</div>
+            <div id="trait-list-box">
+                <input type="hidden" name="Traits" id="traits-hidden-input" value="{{ character['Traits']|join(', ') }}">
+                <ul id="trait-list" class="sheet-list" style="margin-bottom:6px;">
+                    {% for trait in character['Traits'] %}
+                    <li>
+                        {{ trait }}
+                        <button type="button" class="show-effect-btn" data-trait="{{ trait }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
+                        <button type="button" class="remove-trait-btn" data-trait="{{ trait }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
+                        <div class="trait-effect-inline" data-trait="{{ trait }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
+                    </li>
+                    {% else %}
+                    <li>-</li>
+                    {% endfor %}
+                </ul>
+                <button type="button" id="toggle-all-trait-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all trait effects</button>
+                <div id="all-trait-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
             </div>
-            <script id="trait-effects-json" type="application/json">
-            {{ trait_effects_dict|tojson|safe }}
-            </script>
-<script id="ability-effects-json" type="application/json">
-{% set ability_effects_dict = {} %}
-{% for ab in abilities %}
-    {% set norm_name = ab['name']|lower|trim %}
-    {% set _ = ability_effects_dict.update({norm_name: ab['effect']}) %}
-{% endfor %}
-{{ ability_effects_dict|tojson|safe }}
+            <div style="margin-top:8px;">
+                <label for="trait_select"><b>Add Trait:</b></label>
+                <button type="button" id="toggle-trait-desc" style="margin-left:10px;padding:2px 10px;font-size:0.95em;">Show descriptions</button>
+                <select id="trait_select" onchange="traitEffect();" style="width:100%;max-width:100%;box-sizing:border-box;">
+                    <option value="">-- Select a trait --</option>
+                    {% for trait in traits %}
+                    <option value="{{ trait['name'] }}" data-effect="{{ trait['effect'] }}">{{ trait['name'] }} ({{ trait['cost'] }})</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="add-trait-btn" style="margin-top:6px;margin-bottom:8px;">Add Trait</button>
+                <div id="trait-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
+                <div id="trait-desc-list" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
+                    <b>Trait Descriptions:</b>
+                    <ul style="margin:6px 0 0 0;padding-left:18px;">
+                    {% for trait in traits %}
+                        <li><b>{{ trait['name'] }}</b>: {{ trait['effect'] }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sheet-section">
+            <div class="sheet-section-title">Abilities:</div>
+            <div id="ability-list-box">
+                <input type="hidden" name="Abilities" id="abilities-hidden-input" value="{{ character['Abilities']|join(', ') }}">
+                <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
+                {% for ab in character['Abilities'] %}
+                    <li>{{ ab }} <button type="button" class="remove-ability-btn" data-ability="{{ ab }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button></li>
+                {% else %}
+                    <li>-</li>
+                {% endfor %}
+                </ul>
+                <button type="button" id="toggle-all-ability-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all ability effects</button>
+                <div id="all-ability-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
+                <button type="button" id="add-ability-btn" style="margin-top:6px;margin-bottom:8px;">Add Ability</button>
+            </div>
+            <div style="margin-top:8px;">
+                <label for="ability_select"><b>Add Ability:</b></label>
+                <button type="button" id="toggle-ability-desc-edit" style="margin-left:10px;padding:2px 10px;font-size:0.95em;">Show descriptions</button>
+                <select id="ability_select" onchange="abilityEffect();" style="width:100%;max-width:100%;box-sizing:border-box;">
+                    <option value="">-- Select an ability --</option>
+                    {% for ab in abilities %}
+                    <option value="{{ ab['name'] }}" data-effect="{{ ab['effect'] }}">{{ ab['name'] }} ({{ ab['cost'] }})</option>
+                    {% endfor %}
+                </select>
+                <div id="ability-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
+                <div id="ability-desc-list-edit" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
+                    <b>Ability Descriptions:</b>
+                    <ul style="margin:6px 0 0 0;padding-left:18px;">
+                    {% for ab in abilities %}
+                        <li><b>{{ ab['name'] }}</b>: {{ ab['effect'] }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top:16px;">
+            <textarea name="Notes" rows="3" style="width:100%;min-height:60px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Notes'] if character['Notes'] is defined else '' }}</textarea>
+        </div>
+
+        <div style="margin-top:16px;text-align:right;">
+            <button type="submit" style="padding:6px 12px;font-weight:bold;">Save Character</button>
+        </div>
+    </div>
+
+<script id="trait-costs-json" type="application/json">
+{
+{% for trait in traits %}    "{{ trait['name'] }}": {{ trait['cost'] }}{% if not loop.last %},
+{% endif %}{% endfor %}
+}
 </script>
+
+<script id="ability-costs-json" type="application/json">
+{
+{% for ab in abilities %}    "{{ ab['name'] }}": {{ ab['cost'] }}{% if not loop.last %},
+{% endif %}{% endfor %}
+}
+</script>
+
 <script>
-// Show trait effect preview when selecting from dropdown
+// Map trait and ability names to effects for quick lookup
+const TRAIT_EFFECTS = {{ trait_effects_dict|tojson|safe }};
+const ABILITY_EFFECTS = {{ ability_effects_dict|tojson|safe }};
+const TRAIT_COSTS = JSON.parse(document.getElementById('trait-costs-json').textContent);
+const ABILITY_COSTS = JSON.parse(document.getElementById('ability-costs-json').textContent);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleTraitBtn = document.getElementById('toggle-all-trait-effects');
+    const traitEffectsDiv = document.getElementById('all-trait-effects');
+    const traitsInput = document.getElementById('traits-hidden-input');
+    const toggleAbilityBtn = document.getElementById('toggle-all-ability-effects');
+    const abilityEffectsDiv = document.getElementById('all-ability-effects');
+    const abilitiesInput = document.getElementById('abilities-hidden-input');
+    
+    // Trait effects toggle
+    if (toggleTraitBtn && traitEffectsDiv) {
+        let shown = false;
+        toggleTraitBtn.addEventListener('click', function() {
+            if (!shown) {
+                const traitNames = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
+                let html = '';
+                traitNames.forEach(trait => {
+                    if (TRAIT_EFFECTS[trait]) {
+                        html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[trait]}</div>`;
+                    }
+                });
+                traitEffectsDiv.innerHTML = html;
+                traitEffectsDiv.style.display = 'block';
+                toggleTraitBtn.textContent = 'Hide all trait effects';
+                shown = true;
+            } else {
+                traitEffectsDiv.style.display = 'none';
+                toggleTraitBtn.textContent = 'Show all trait effects';
+                shown = false;
+            }
+        });
+    }
+    
+    // Ability effects toggle
+    if (toggleAbilityBtn && abilityEffectsDiv) {
+        let shown = false;
+        toggleAbilityBtn.addEventListener('click', function() {
+            if (!shown) {
+                const abilityNames = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).map(btn => btn.getAttribute('data-ability'));
+                let html = '';
+                abilityNames.forEach(ability => {
+                    if (ABILITY_EFFECTS[ability]) {
+                        html += `<div style="margin-bottom:6px;"><b>${ability}</b>: ${ABILITY_EFFECTS[ability]}</div>`;
+                    }
+                });
+                abilityEffectsDiv.innerHTML = html;
+                abilityEffectsDiv.style.display = 'block';
+                toggleAbilityBtn.textContent = 'Hide all ability effects';
+                shown = true;
+            } else {
+                abilityEffectsDiv.style.display = 'none';
+                toggleAbilityBtn.textContent = 'Show all ability effects';
+                shown = false;
+            }
+        });
+    }
+
+    // --- TRAIT ADD/REMOVE ---
+    function updateTraitsInput() {
+        var traits = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn'))
+            .map(btn => btn.getAttribute('data-trait'));
+        traitsInput.value = traits.join(', ');
+        updatePoints();
+    }
+    
+    // Event delegation for trait removal
+    document.getElementById('trait-list').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-trait-btn')) {
+            var li = e.target.parentElement;
+            li.parentElement.removeChild(li);
+            updateTraitsInput();
+            // If no traits left, show a dash
+            var traitList = document.getElementById('trait-list');
+            if (traitList.children.length === 0) {
+                var dash = document.createElement('li');
+                dash.textContent = '-';
+                traitList.appendChild(dash);
+            }
+        }
+        
+        // Info button for trait effects
+        if (e.target.classList.contains('show-effect-btn')) {
+            const trait = e.target.getAttribute('data-trait');
+            const effectDiv = document.querySelector(`.trait-effect-inline[data-trait="${trait}"]`);
+            if (effectDiv) {
+                if (effectDiv.style.display === 'none') {
+                    effectDiv.innerHTML = `<b>${trait}</b>: ${TRAIT_EFFECTS[trait] || 'No effect info available.'}`;
+                    effectDiv.style.display = 'block';
+                } else {
+                    effectDiv.style.display = 'none';
+                }
+            }
+        }
+    });
+    
+    // Add trait button
+    var addTraitBtn = document.getElementById('add-trait-btn');
+    if (addTraitBtn) {
+        addTraitBtn.addEventListener('click', function() {
+            var select = document.getElementById('trait_select');
+            var trait = select.value;
+            if (!trait) return;
+            // Prevent duplicates
+            var exists = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).some(btn => btn.getAttribute('data-trait') === trait);
+            if (exists) return;
+            // Remove dash if present
+            var traitList = document.getElementById('trait-list');
+            if (traitList.children.length === 1 && traitList.children[0].textContent === '-') {
+                traitList.removeChild(traitList.children[0]);
+            }
+            var li = document.createElement('li');
+            li.innerHTML = trait + 
+                ' <button type="button" class="show-effect-btn" data-trait="' + trait + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
+                ' <button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
+                '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>';
+            traitList.appendChild(li);
+            updateTraitsInput();
+            select.selectedIndex = 0;
+            document.getElementById('trait-effect-preview').style.display = 'none';
+        });
+    }
+    
+    // --- ABILITY ADD/REMOVE ---
+    function updateAbilitiesInput() {
+        var abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn'))
+            .map(btn => btn.getAttribute('data-ability'));
+        abilitiesInput.value = abilities.join(', ');
+        updatePoints();
+    }
+    
+    // Event delegation for ability removal
+    document.getElementById('ability-list').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-ability-btn')) {
+            var li = e.target.parentElement;
+            li.parentElement.removeChild(li);
+            updateAbilitiesInput();
+            // If no abilities left, show a dash
+            var abilityList = document.getElementById('ability-list');
+            if (abilityList.children.length === 0) {
+                var dash = document.createElement('li');
+                dash.textContent = '-';
+                abilityList.appendChild(dash);
+            }
+        }
+    });
+    
+    // Add ability button
+    var addAbilityBtn = document.getElementById('add-ability-btn');
+    if (addAbilityBtn) {
+        addAbilityBtn.addEventListener('click', function() {
+            var select = document.getElementById('ability_select');
+            var ability = select.value;
+            if (!ability) return;
+            // Prevent duplicates
+            var exists = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).some(btn => btn.getAttribute('data-ability') === ability);
+            if (exists) return;
+            // Remove dash if present
+            var abilityList = document.getElementById('ability-list');
+            if (abilityList.children.length === 1 && abilityList.children[0].textContent === '-') {
+                abilityList.removeChild(abilityList.children[0]);
+            }
+            var li = document.createElement('li');
+            li.innerHTML = ability + ' <button type="button" class="remove-ability-btn" data-ability="' + ability + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>';
+            abilityList.appendChild(li);
+            updateAbilitiesInput();
+            select.selectedIndex = 0;
+            document.getElementById('ability-effect-preview').style.display = 'none';
+        });
+    }
+    
+    // --- DESCRIPTION TOGGLES ---
+    var traitBtn = document.getElementById('toggle-trait-desc');
+    var traitDesc = document.getElementById('trait-desc-list');
+    if (traitBtn && traitDesc) {
+        traitBtn.addEventListener('click', function() {
+            if (traitDesc.style.display === 'none' || traitDesc.style.display === '') {
+                traitDesc.style.display = 'block';
+                traitBtn.textContent = 'Hide descriptions';
+            } else {
+                traitDesc.style.display = 'none';
+                traitBtn.textContent = 'Show descriptions';
+            }
+        });
+    }
+    
+    var abBtnEdit = document.getElementById('toggle-ability-desc-edit');
+    var abDescEdit = document.getElementById('ability-desc-list-edit');
+    if (abBtnEdit && abDescEdit) {
+        abBtnEdit.addEventListener('click', function() {
+            if (abDescEdit.style.display === 'none' || abDescEdit.style.display === '') {
+                abDescEdit.style.display = 'block';
+                abBtnEdit.textContent = 'Hide descriptions';
+            } else {
+                abDescEdit.style.display = 'none';
+                abBtnEdit.textContent = 'Show descriptions';
+            }
+        });
+    }
+    
+    // Initialize points calculation
+    updatePoints();
+});
+
+// Show effect preview for selected trait
 function traitEffect() {
     var select = document.getElementById('trait_select');
     var preview = document.getElementById('trait-effect-preview');
-    var trait = select.value;
-    var norm = normalizeTraitName(trait);
-    var effect = TRAIT_EFFECTS[norm];
-    if (effect && trait) {
+    var effect = select.options[select.selectedIndex].getAttribute('data-effect');
+    if (effect && select.value) {
         preview.style.display = 'block';
         preview.textContent = effect;
     } else {
@@ -136,243 +417,26 @@ function traitEffect() {
         preview.textContent = '';
     }
 }
-// Map normalized trait names to effects for quick lookup
-const TRAIT_EFFECTS = JSON.parse(document.getElementById('trait-effects-json').textContent);
-const ABILITY_EFFECTS = JSON.parse(document.getElementById('ability-effects-json').textContent);
-function normalizeAbilityName(name) {
-    return name.toLowerCase().trim();
-}
-function normalizeTraitName(name) {
-    return name.toLowerCase().trim();
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('toggle-all-trait-effects');
-    const effectsDiv = document.getElementById('all-trait-effects');
-    function getCurrentTraits() {
-        // Get all trait names from the hidden input (source of truth)
-        const input = document.getElementById('traits-hidden-input');
-        if (!input) return [];
-        return input.value.split(',').map(x => x.trim()).filter(x => x);
+// Show effect preview for selected ability
+function abilityEffect() {
+    var select = document.getElementById('ability_select');
+    var preview = document.getElementById('ability-effect-preview');
+    var effect = select.options[select.selectedIndex].getAttribute('data-effect');
+    if (effect && select.value) {
+        preview.style.display = 'block';
+        preview.textContent = effect;
+    } else {
+        preview.style.display = 'none';
+        preview.textContent = '';
     }
-    function updateAllTraitEffectsBox() {
-    if (!effectsDiv || effectsDiv.style.display === 'none') return;
-    effectsDiv.innerHTML = '<div style="color:red;font-weight:bold;">TEST: updateAllTraitEffectsBox is running!</div>';
-        const traitNames = getCurrentTraits();
-        let html = '';
-        let debugLines = '';
-        if (traitNames.length === 0) {
-            html = '<i>No traits selected.</i>';
-        } else {
-            debugLines += 'DEBUG:\n';
-            html += '<div style="color:#a60;font-size:0.95em;margin-bottom:6px;">DEBUG: <br>';
-            traitNames.forEach(trait => {
-                const norm = normalizeTraitName(trait);
-                debugLines += `[${trait}] → [${norm}] → [` + (TRAIT_EFFECTS[norm] ? 'FOUND' : 'NOT FOUND') + `]\n`;
-                html += `[${trait}] → [${norm}] → [` + (TRAIT_EFFECTS[norm] ? 'FOUND' : 'NOT FOUND') + `]<br>`;
-            });
-            html += '</div>';
-            alert(debugLines);
-            traitNames.forEach(trait => {
-                const norm = normalizeTraitName(trait);
-                if (TRAIT_EFFECTS[norm]) {
-                    html += `<div style=\"margin-bottom:6px;\"><b>${trait}</b>: ${TRAIT_EFFECTS[norm]}</div>`;
-                } else {
-                    html += `<div style=\"margin-bottom:6px;\"><b>${trait}</b>: <i>No effect found.</i></div>`;
-                }
-            });
-        }
-    effectsDiv.innerHTML = html;
-    effectsDiv.style.display = 'block';
-    effectsDiv.style.border = '2px solid #c00';
-    }
-    if (toggleBtn && effectsDiv) {
-        let shown = false;
-        toggleBtn.addEventListener('click', function() {
-            if (!shown) {
-                effectsDiv.style.display = 'block';
-                updateAllTraitEffectsBox();
-                toggleBtn.textContent = 'Hide all trait effects';
-                shown = true;
-            } else {
-                effectsDiv.style.display = 'none';
-                toggleBtn.textContent = 'Show all trait effects';
-                shown = false;
-            }
-        });
-        // Live update when traits are added or removed
-        const input = document.getElementById('traits-hidden-input');
-        if (input) {
-            input.addEventListener('input', function() {
-                if (shown) updateAllTraitEffectsBox();
-            });
-        }
-    }
-});
-</script>
-        </div>
-        <div style="margin-top:8px;">
-            <label for="trait_select"><b>Add Trait:</b></label>
-            <select id="trait_select" onchange="traitEffect();" style="width:100%;max-width:100%;box-sizing:border-box;">
-                    <option value="">-- Select a trait --</option>
-                {% for trait in traits %}
-                <option value="{{ trait['name'] }}" data-effect="{{ trait['effect'] }}">{{ trait['name'] }} ({{ trait['cost'] }})</option>
-                {% endfor %}
-            </select>
-                <button type="button" id="add-trait-btn" style="margin-top:6px;margin-bottom:8px;">Add Trait</button>
-            <div id="trait-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-            <div id="trait-desc-list" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
-                <!-- Trait Descriptions removed as per request -->
-            </div>
-        </div>
-    </div>
-    <div class="sheet-section">
-    <div class="sheet-section-title">Abilities:</div>
-        <div id="ability-list-box">
-            <input type="hidden" name="Abilities" id="abilities-hidden-input" value="{{ character['Abilities']|join(', ') }}">
-            <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
-            {% for ab in character['Abilities'] %}
-                <li>
-                    {{ ab }}
-                    <button type="button" class="show-ability-effect-btn" data-ability="{{ ab }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
-                    <button type="button" class="remove-ability-btn" data-ability="{{ ab }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
-                    <div class="ability-effect-inline" data-ability="{{ ab }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-                </li>
-            {% endfor %}
-            <button type="button" id="toggle-all-ability-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all ability effects</button>
-            <div id="all-ability-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-            </ul>
-            <button type="button" id="add-ability-btn" style="margin-top:6px;margin-bottom:8px;">Add Ability</button>
-        </div>
-        <div style="margin-top:8px;">
-            <label for="ability_select"><b>Add Ability:</b></label>
-            <select id="ability_select" onchange="abilityEffect();" style="width:100%;max-width:100%;box-sizing:border-box;">
-                <option value="">-- Select an ability --</option>
-                {% for ab in abilities %}
-                <option value="{{ ab['name'] }}" data-effect="{{ ab['effect'] }}">{{ ab['name'] }} ({{ ab['cost'] }})</option>
-                {% endfor %}
-            </select>
-            <div id="ability-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-            <div id="ability-desc-list-edit" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
-                <!-- Ability Descriptions removed as per request -->
-            </div>
-        </div>
-    </div>
-    <div class="sheet-section" style="padding:0;">
-        <div class="sheet-section-title">Notes / Background:</div>
-        <div class="sheet-quarter-inner">
-            <textarea name="Notes" rows="3" style="width:100%;min-height:60px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Notes'] if character['Notes'] is defined else '' }}</textarea>
-        </div>
-        <div class="sheet-flex">
-            <div class="sheet-half">
-                <div class="sheet-section-title">Equipment (comma separated): <span style="color:#b00;font-size:0.9em;">(add in dev)</span></div>
-                <div class="sheet-quarter-inner">
-                    <input type="text" name="Equipment" value="{{ character['Equipment']|join(', ') }}">
-                </div>
-            </div>
-            <!-- Removed Injuries and Campaign points sections as requested -->
-            </div>
-        </div>
-    </div>
-</div>
-<script id="trait-costs-json" type="application/json">
-{
-{% for trait in traits %}    "{{ trait['name'] }}": {{ trait['cost'] }}{% if not loop.last %},
-{% endif %}{% endfor %}
 }
 
-</script>
-<script>
-
-// Trait remove logic, add trait, and per-trait show/hide effect button logic
-window.addEventListener('DOMContentLoaded', function() {
-    // Remove trait button logic
-    function updateTraitsInput() {
-        var traits = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn'))
-            .map(btn => btn.getAttribute('data-trait'));
-        document.getElementById('traits-hidden-input').value = traits.join(', ');
-    }
-    document.getElementById('trait-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-trait-btn')) {
-            var li = e.target.parentElement;
-            li.parentElement.removeChild(li);
-            updateTraitsInput();
-        }
-        if (e.target.classList.contains('show-effect-btn')) {
-            var trait = e.target.getAttribute('data-trait');
-            var effectDiv = e.target.parentElement.querySelector('.trait-effect-inline');
-            const norm = normalizeTraitName(trait);
-            if (effectDiv.style.display === 'none' || effectDiv.style.display === '') {
-                effectDiv.textContent = TRAIT_EFFECTS[norm] || '';
-                effectDiv.style.display = 'block';
-                e.target.textContent = 'Hide';
-            } else {
-                effectDiv.style.display = 'none';
-                e.target.textContent = '\u24D8';
-            }
-        }
-    });
-    // --- TRAIT ADD/REMOVE ---
-    document.getElementById('add-trait-btn').onclick = function() {
-        var select = document.getElementById('trait_select');
-        var trait = select.value;
-        if (!trait) return;
-        // Prevent duplicates
-        var exists = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).some(btn => btn.getAttribute('data-trait') === trait);
-        if (exists) return;
-        var li = document.createElement('li');
-        li.innerHTML = trait +
-            ' <button type="button" class="show-effect-btn" data-trait="' + trait + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
-            ' <button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
-            '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>';
-        document.getElementById('trait-list').appendChild(li);
-        updateTraitsInput();
-    };
-    // --- ABILITY ADD/REMOVE ---
-    function updateAbilitiesInput() {
-        var abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn'))
-            .map(btn => btn.getAttribute('data-ability'));
-        document.getElementById('abilities-hidden-input').value = abilities.join(', ');
-    }
-    document.getElementById('ability-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-ability-btn')) {
-            var li = e.target.parentElement;
-            li.parentElement.removeChild(li);
-            updateAbilitiesInput();
-        }
-    });
-    var addAbilityBtn = document.getElementById('add-ability-btn');
-    if (addAbilityBtn) {
-        addAbilityBtn.onclick = function() {
-            var select = document.getElementById('ability_select');
-            var ability = select.value;
-            if (!ability) return;
-            // Prevent duplicates
-            var exists = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).some(btn => btn.getAttribute('data-ability') === ability);
-            if (exists) return;
-            var li = document.createElement('li');
-            li.innerHTML = ability + ' <button type="button" class="remove-ability-btn" data-ability="' + ability + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>';
-            document.getElementById('ability-list').appendChild(li);
-            updateAbilitiesInput();
-        };
-    }
-    // Trait and ability description toggles removed as per request
-});
-</script>
-<script id="ability-costs-json" type="application/json">
-{
-{% for ab in abilities %}    "{{ ab['name'] }}": {{ ab['cost'] }}{% if not loop.last %},
-{% endif %}{% endfor %}
-}
-</script>
-<script>
-const TRAIT_COSTS = JSON.parse(document.getElementById('trait-costs-json').textContent);
-const ABILITY_COSTS = JSON.parse(document.getElementById('ability-costs-json').textContent);
-
+// Calculate points based on traits and abilities
 function updatePoints() {
     let basePoints = 10; // base cost
-    let traitInput = document.getElementsByName('Traits')[0].value;
-    let abilityInput = document.getElementsByName('Abilities')[0].value;
+    let traitInput = document.getElementById('traits-hidden-input').value;
+    let abilityInput = document.getElementById('abilities-hidden-input').value;
     let traits = traitInput.split(',').map(x => x.trim()).filter(x => x);
     let abilities = abilityInput.split(',').map(x => x.trim()).filter(x => x);
     let total = basePoints;
@@ -380,42 +444,7 @@ function updatePoints() {
     abilities.forEach(a => { if (ABILITY_COSTS[a] !== undefined) total += ABILITY_COSTS[a]; });
     document.getElementsByName('Points')[0].value = total;
 }
-
-function addTrait() {
-    var sel = document.getElementById('trait_select');
-    var val = sel.value;
-    if (!val) return;
-    var input = document.getElementsByName('Traits')[0];
-    var arr = input.value.split(',').map(x => x.trim()).filter(x => x);
-    if (arr.indexOf(val) === -1) arr.push(val);
-    input.value = arr.join(', ');
-    sel.selectedIndex = 0;
-    updatePoints();
-}
-function addAbility() {
-    var select = document.getElementById('ability_select');
-    var preview = document.getElementById('ability-effect-preview');
-    var ability = select.value;
-    var norm = normalizeAbilityName(ability);
-    var effect = ABILITY_EFFECTS[norm];
-    if (effect && ability) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
-    } else {
-        preview.style.display = 'none';
-        preview.textContent = '';
-    }
-}
-document.getElementsByName('Traits')[0].addEventListener('input', updatePoints);
-document.getElementsByName('Abilities')[0].addEventListener('input', updatePoints);
-window.addEventListener('DOMContentLoaded', updatePoints);
 </script>
-
-    <div class="sheet-nav">
-        <button class="btn" type="submit">Save</button>
-        <a href="/warband/{{ warband }}" class="btn">Cancel</a>
-    </div>
 </form>
 </body>
 </html>
-print('DEBUG: edit_character_get called')
