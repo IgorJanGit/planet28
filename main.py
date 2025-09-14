@@ -342,6 +342,8 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     character['Traits'] = trait_list
     character['Abilities'] = ability_list
     character['Equipment'] = [e.strip() for e in equipment.split(',') if e.strip()]
+    # Save notes/background
+    character['Notes'] = form.get('Notes', character.get('Notes', ''))
     # Save back to file (rename if name changed)
     new_name = character['Name']
     new_char_file = os.path.join(wb_path, f"{new_name}.json")

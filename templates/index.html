@@ -81,13 +81,7 @@
         </ul>
     </div>
     <div class="sheet-section">
-        <div class="sheet-section-title">Abilities:</div>
-        <ul class="sheet-list">
-        {% for ab in ability_objs %}
-            <li><b>{{ ab.name }}</b>{% if ab.cost is not none %} ({{ ab.cost }}){% endif %}: {{ ab.effect }}</li>
-        {% else %}
-            <li>-</li>
-        {% endfor %}
+        {# Ability display block moved to scrap_code.html #}
         </ul>
     </div>
     <div class="sheet-flex">

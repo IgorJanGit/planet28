@@ -85,12 +85,21 @@
         <input type="text" name="Traits" value="{{ character['Traits']|join(', ') }}" style="width:100%;">
         <div style="margin-top:8px;">
             <label for="trait_select"><b>Add Trait:</b></label>
+            <button type="button" id="toggle-trait-desc" style="margin-left:10px;padding:2px 10px;font-size:0.95em;">Show descriptions</button>
             <select id="trait_select" onchange="addTrait()" style="width:100%;max-width:100%;box-sizing:border-box;">
                 <option value="">-- Select a trait --</option>
                 {% for trait in traits %}
-                <option value="{{ trait['name'] }}">{{ trait['name'] }} ({{ trait['cost'] }}) - {{ trait['effect'] }}</option>
+                <option value="{{ trait['name'] }}" data-effect="{{ trait['effect'] }}">{{ trait['name'] }} ({{ trait['cost'] }})</option>
                 {% endfor %}
             </select>
+            <div id="trait-desc-list" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
+                <b>Trait Descriptions:</b>
+                <ul style="margin:6px 0 0 0;padding-left:18px;">
+                {% for trait in traits %}
+                    <li><b>{{ trait['name'] }}</b>: {{ trait['effect'] }}</li>
+                {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
     <div class="sheet-section">
@@ -98,15 +107,28 @@
         <input type="text" name="Abilities" value="{{ character['Abilities']|join(', ') }}" style="width:100%;">
         <div style="margin-top:8px;">
             <label for="ability_select"><b>Add Ability:</b></label>
+            <button type="button" id="toggle-ability-desc" style="margin-left:10px;padding:2px 10px;font-size:0.95em;">Show descriptions</button>
             <select id="ability_select" onchange="addAbility()" style="width:100%;max-width:100%;box-sizing:border-box;">
                 <option value="">-- Select an ability --</option>
                 {% for ab in abilities %}
-                <option value="{{ ab['name'] }}">{{ ab['name'] }} ({{ ab['cost'] }}) - {{ ab['effect'] }}</option>
+                <option value="{{ ab['name'] }}" data-effect="{{ ab['effect'] }}">{{ ab['name'] }} ({{ ab['cost'] }})</option>
                 {% endfor %}
             </select>
+            <div id="ability-desc-list" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
+                <b>Ability Descriptions:</b>
+                <ul style="margin:6px 0 0 0;padding-left:18px;">
+                {% for ab in abilities %}
+                    <li><b>{{ ab['name'] }}</b>: {{ ab['effect'] }}</li>
+                {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
     <div class="sheet-section" style="padding:0;">
+        <div class="sheet-section-title">Notes / Background:</div>
+        <div class="sheet-quarter-inner">
+            <textarea name="Notes" rows="3" style="width:100%;min-height:60px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Notes'] if character['Notes'] is defined else '' }}</textarea>
+        </div>
         <div class="sheet-flex">
             <div class="sheet-half">
                 <div class="sheet-section-title">Equipment (comma separated): <span style="color:#b00;font-size:0.9em;">(add in dev)</span></div>
@@ -128,6 +150,35 @@
 {% for trait in traits %}    "{{ trait['name'] }}": {{ trait['cost'] }}{% if not loop.last %},
 {% endif %}{% endfor %}
 }
+// Toggle trait and ability descriptions after DOM is loaded
+window.addEventListener('DOMContentLoaded', function() {
+    var traitBtn = document.getElementById('toggle-trait-desc');
+    var traitDesc = document.getElementById('trait-desc-list');
+    if (traitBtn && traitDesc) {
+        traitBtn.onclick = function() {
+            if (traitDesc.style.display === 'none' || traitDesc.style.display === '') {
+                traitDesc.style.display = 'block';
+                traitBtn.textContent = 'Hide descriptions';
+            } else {
+                traitDesc.style.display = 'none';
+                traitBtn.textContent = 'Show descriptions';
+            }
+        };
+    }
+    var abBtn = document.getElementById('toggle-ability-desc');
+    var abDesc = document.getElementById('ability-desc-list');
+    if (abBtn && abDesc) {
+        abBtn.onclick = function() {
+            if (abDesc.style.display === 'none' || abDesc.style.display === '') {
+                abDesc.style.display = 'block';
+                abBtn.textContent = 'Hide descriptions';
+            } else {
+                abDesc.style.display = 'none';
+                abBtn.textContent = 'Show descriptions';
+            }
+        };
+    }
+});
 </script>
 <script id="ability-costs-json" type="application/json">
 {
