@@ -115,9 +115,21 @@
 <script id="trait-effects-json" type="application/json">
 {{ trait_effects_dict|tojson|safe }}
 </script>
+<script id="ability-effects-json" type="application/json">
+{% set ability_effects_dict = {} %}
+{% for ab in abilities %}
+    {% set norm_name = ab['name']|lower|trim %}
+    {% set _ = ability_effects_dict.update({norm_name: ab['effect']}) %}
+{% endfor %}
+{{ ability_effects_dict|tojson|safe }}
+</script>
 <script>
 // Map normalized trait names to effects for quick lookup
 const TRAIT_EFFECTS = JSON.parse(document.getElementById('trait-effects-json').textContent);
+const ABILITY_EFFECTS = JSON.parse(document.getElementById('ability-effects-json').textContent);
+function normalizeAbilityName(name) {
+    return name.toLowerCase().trim();
+}
 function normalizeTraitName(name) {
     return name.toLowerCase().trim();
 }
@@ -183,9 +195,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
             {% for ab in character['Abilities'] %}
                 <li>{{ ab }} <button type="button" class="remove-ability-btn" data-ability="{{ ab }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button></li>
-            {% else %}
-                <li>-</li>
             {% endfor %}
+            <button type="button" id="toggle-all-ability-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all ability effects</button>
+            <div id="all-ability-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
             </ul>
             <button type="button" id="add-ability-btn" style="margin-top:6px;margin-bottom:8px;">Add Ability</button>
         </div>
@@ -338,15 +350,18 @@ function addTrait() {
     updatePoints();
 }
 function addAbility() {
-    var sel = document.getElementById('ability_select');
-    var val = sel.value;
-    if (!val) return;
-    var input = document.getElementsByName('Abilities')[0];
-    var arr = input.value.split(',').map(x => x.trim()).filter(x => x);
-    if (arr.indexOf(val) === -1) arr.push(val);
-    input.value = arr.join(', ');
-    sel.selectedIndex = 0;
-    updatePoints();
+    var select = document.getElementById('ability_select');
+    var preview = document.getElementById('ability-effect-preview');
+    var ability = select.value;
+    var norm = normalizeAbilityName(ability);
+    var effect = ABILITY_EFFECTS[norm];
+    if (effect && ability) {
+        preview.style.display = 'block';
+        preview.textContent = effect;
+    } else {
+        preview.style.display = 'none';
+        preview.textContent = '';
+    }
 }
 document.getElementsByName('Traits')[0].addEventListener('input', updatePoints);
 document.getElementsByName('Abilities')[0].addEventListener('input', updatePoints);
@@ -360,3 +375,4 @@ window.addEventListener('DOMContentLoaded', updatePoints);
 </form>
 </body>
 </html>
+print('DEBUG: edit_character_get called')

@@ -271,6 +271,7 @@ def edit_character_get(request: Request, warband: str, char_name: str):
     with open(char_file, "r") as f:
         character = json.load(f)
     traits = list_traits()
+    print('DEBUG: traits passed to template:', traits)
     abilities = list_abilities()
     # --- Apply stat modifiers from traits and abilities ---
     from app.traits_api import get_trait
