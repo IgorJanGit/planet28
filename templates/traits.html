@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traits - Planet 28</title>
+</head>
+<body>
+    <h2>Add Trait</h2>
+    <form action="/add_trait" method="post">
+        <select name="trait">
+            {% for trait in traits %}
+            <option value="{{ trait['name'] }}">{{ trait['name'] }} ({{ trait['cost'] }}) - {{ trait['effect'] }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Add Trait</button>
+    </form>
+    <p>Current Traits: {{ character['Traits'] }}</p>
+    <a href="/">Back to Character</a>
+</body>
+</html>

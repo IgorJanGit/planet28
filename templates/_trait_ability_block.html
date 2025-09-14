@@ -1,0 +1,16 @@
+<h3>Traits</h3>
+<ul>
+{% for trait in trait_objs %}
+    <li><b>{{ trait.name }}</b>{% if trait.cost is not none %} ({{ trait.cost }}){% endif %}: {{ trait.effect }}</li>
+{% else %}
+    <li>-</li>
+{% endfor %}
+</ul>
+<h3>Abilities</h3>
+<ul>
+{% for ab in ability_objs %}
+    <li><b>{{ ab.name }}</b>{% if ab.cost is not none %} ({{ ab.cost }}){% endif %}: {{ ab.effect }}</li>
+{% else %}
+    <li>-</li>
+{% endfor %}
+</ul>

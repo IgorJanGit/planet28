@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planet 28 Character Generator</title>
+</head>
+<body>
+    <h1>Planet 28 Character Generator</h1>
+    <form action="/set_name" method="post">
+        <label>Character Name: <input type="text" name="name" value="{{ character['Name'] }}" required></label>
+        <button type="submit">Set Name</button>
+    </form>
+    <p>Points: {{ character['Points'] }}</p>
+    <p>Skills: {{ character['Skills'] }}</p>
+    <p>Speed: {{ character['Speed'] }} | Hit-points: {{ character['Hit-points'] }}</p>
+    {% include '_trait_ability_block.html' %}
+    <form action="/remove_trait" method="post">
+        <label>Remove Trait:
+            <select name="trait" {% if not trait_objs %}disabled{% endif %}>
+                {% for trait in trait_objs %}
+                    <option value="{{ trait.name }}">{{ trait.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" {% if not trait_objs %}disabled{% endif %}>Remove Trait</button>
+    </form>
+    <form action="/remove_ability" method="post">
+        <label>Remove Ability:
+            <select name="ability" {% if not ability_objs %}disabled{% endif %}>
+                {% for ab in ability_objs %}
+                    <option value="{{ ab.name }}">{{ ab.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" {% if not ability_objs %}disabled{% endif %}>Remove Ability</button>
+    </form>
+    <h3>Equipment</h3>
+    <ul>
+    {% for eq in character['Equipment'] %}
+        {% if eq.name is defined %}
+            <li><b>{{ eq.name }}</b> (Range: {{ eq.range }}cm, Damage: {{ eq.damage }}, Cost: {{ eq.cost }}{% if eq.one_handed %}, One-handed{% endif %})</li>
+        {% else %}
+            <li>{{ eq }}</li>
+        {% endif %}
+    {% else %}
+        <li>-</li>
+    {% endfor %}
+    </ul>
+    <form action="/remove_equipment" method="post">
+        <label>Remove Equipment:
+            <select name="eq_name" {% if not character['Equipment'] %}disabled{% endif %}>
+                {% for eq in character['Equipment'] %}
+                    {% if eq.name is defined %}
+                        <option value="{{ eq.name }}">{{ eq.name }}</option>
+                    {% else %}
+                        <option value="{{ eq }}">{{ eq }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" {% if not character['Equipment'] %}disabled{% endif %}>Remove Equipment</button>
+    </form>
+    <nav>
+        <a href="/traits">Add Traits</a> |
+        <a href="/abilities">Add Abilities</a> |
+        <a href="/arcana">View Arcana</a> |
+        <a href="/export"><b>Export/Print Sheet</b></a>
+    </nav>
+</body>
+</html>

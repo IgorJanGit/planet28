@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arcana - Planet 28</title>
+</head>
+<body>
+    <h2>Arcana Table</h2>
+    <table border="1">
+        <tr><th>Roll</th><th>Name</th><th>Effect</th></tr>
+        {% for arc in arcana %}
+        <tr>
+            <td>{{ arc['roll'] }}</td>
+            <td>{{ arc['name'] }}</td>
+            <td>{{ arc['effect'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/">Back to Character</a>
+</body>
+</html>

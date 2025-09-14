@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Abilities - Planet 28</title>
+</head>
+<body>
+    <h2>Add Ability</h2>
+    <form action="/add_ability" method="post">
+        <select name="ability">
+            {% for ab in abilities %}
+            <option value="{{ ab['name'] }}">{{ ab['name'] }} ({{ ab['cost'] }}) - {{ ab['effect'] }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Add Ability</button>
+    </form>
+    <p>Current Abilities: {{ character['Abilities'] }}</p>
+    <a href="/">Back to Character</a>
+</body>
+</html>
