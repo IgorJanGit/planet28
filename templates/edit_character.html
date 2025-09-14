@@ -88,7 +88,9 @@
             {% for trait in character['Traits'] %}
                 <li>
                     {{ trait }}
+                    <button type="button" class="show-effect-btn" data-trait="{{ trait }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
                     <button type="button" class="remove-trait-btn" data-trait="{{ trait }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
+                    <div class="trait-effect-inline" data-trait="{{ trait }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
                 </li>
             {% else %}
                 <li>-</li>
@@ -97,30 +99,50 @@
             <button type="button" id="toggle-all-trait-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all trait effects</button>
             <div id="all-trait-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
 
+            <!-- DEBUG: Show trait_effects_dict and character['Traits'] (safe for undefined) -->
+            <div style="background:#ffe;border:1px solid #cc0;padding:6px 10px;margin:8px 0 8px 0;font-size:0.95em;color:#a60;">
+                <b>Debug:</b><br>
+                <b>trait_effects_dict:</b> {{ trait_effects_dict|default({})|tojson }}<br>
+                <b>character['Traits']:</b> {{ character['Traits']|default([])|join(', ') }}
+            </div>
+
 {% set trait_effects_dict = {} %}
+
 {% for trait in traits %}
-    {% set _ = trait_effects_dict.update({trait['name']: trait['effect']}) %}
+    {% set norm_name = trait['name']|lower|trim %}
+    {% set _ = trait_effects_dict.update({norm_name: trait['effect']}) %}
 {% endfor %}
+<script id="trait-effects-json" type="application/json">
+{{ trait_effects_dict|tojson|safe }}
+</script>
 <script>
-// Map trait names to effects for quick lookup
-const TRAIT_EFFECTS = {{ trait_effects_dict|tojson|safe }};
+// Map normalized trait names to effects for quick lookup
+const TRAIT_EFFECTS = JSON.parse(document.getElementById('trait-effects-json').textContent);
+function normalizeTraitName(name) {
+    return name.toLowerCase().trim();
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-all-trait-effects');
     const effectsDiv = document.getElementById('all-trait-effects');
+    function updateAllTraitEffectsBox() {
+        if (!effectsDiv || effectsDiv.style.display === 'none') return;
+        // Get all selected traits from the list
+        const traitNames = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
+        let html = '';
+        traitNames.forEach(trait => {
+            const norm = normalizeTraitName(trait);
+            if (TRAIT_EFFECTS[norm]) {
+                html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[norm]}</div>`;
+            }
+        });
+        effectsDiv.innerHTML = html;
+    }
     if (toggleBtn && effectsDiv) {
         let shown = false;
         toggleBtn.addEventListener('click', function() {
             if (!shown) {
-                // Get all selected traits from the list
-                const traitNames = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
-                let html = '';
-                traitNames.forEach(trait => {
-                    if (TRAIT_EFFECTS[trait]) {
-                        html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[trait]}</div>`;
-                    }
-                });
-                effectsDiv.innerHTML = html;
+                updateAllTraitEffectsBox();
                 effectsDiv.style.display = 'block';
                 toggleBtn.textContent = 'Hide all trait effects';
                 shown = true;
@@ -130,13 +152,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 shown = false;
             }
         });
+        // Live update when traits are added or removed
+        const observer = new MutationObserver(function() {
+            if (shown) updateAllTraitEffectsBox();
+        });
+        observer.observe(document.getElementById('trait-list'), { childList: true });
     }
 });
 </script>
         </div>
         <div style="margin-top:8px;">
             <label for="trait_select"><b>Add Trait:</b></label>
-            <button type="button" id="toggle-trait-desc" style="margin-left:10px;padding:2px 10px;font-size:0.95em;">Show descriptions</button>
             <select id="trait_select" onchange="traitEffect();" style="width:100%;max-width:100%;box-sizing:border-box;">
                     <option value="">-- Select a trait --</option>
                 {% for trait in traits %}
@@ -146,12 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" id="add-trait-btn" style="margin-top:6px;margin-bottom:8px;">Add Trait</button>
             <div id="trait-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
             <div id="trait-desc-list" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
-                <b>Trait Descriptions:</b>
-                <ul style="margin:6px 0 0 0;padding-left:18px;">
-                {% for trait in traits %}
-                    <li><b>{{ trait['name'] }}</b>: {{ trait['effect'] }}</li>
-                {% endfor %}
-                </ul>
+                <!-- Trait Descriptions removed as per request -->
             </div>
         </div>
     </div>
@@ -170,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div style="margin-top:8px;">
             <label for="ability_select"><b>Add Ability:</b></label>
-            <button type="button" id="toggle-ability-desc-edit" style="margin-left:10px;padding:2px 10px;font-size:0.95em;">Show descriptions</button>
             <select id="ability_select" onchange="abilityEffect();" style="width:100%;max-width:100%;box-sizing:border-box;">
                 <option value="">-- Select an ability --</option>
                 {% for ab in abilities %}
@@ -179,12 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </select>
             <div id="ability-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
             <div id="ability-desc-list-edit" style="display:none;margin-top:8px;font-size:0.97em;color:#333;background:#f8f8f8;padding:8px 10px;border-radius:6px;border:1px solid #ddd;max-height:120px;overflow:auto;">
-                <b>Ability Descriptions:</b>
-                <ul style="margin:6px 0 0 0;padding-left:18px;">
-                {% for ab in abilities %}
-                    <li><b>{{ ab['name'] }}</b>: {{ ab['effect'] }}</li>
-                {% endfor %}
-                </ul>
+                <!-- Ability Descriptions removed as per request -->
             </div>
         </div>
     </div>
@@ -200,11 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="text" name="Equipment" value="{{ character['Equipment']|join(', ') }}">
                 </div>
             </div>
-            <div class="sheet-half">
-                <div class="sheet-section-title">Injuries:</div>
-                <div class="sheet-quarter-inner">-</div>
-                <div class="sheet-section-title">Campaign points:</div>
-                <div class="sheet-quarter-inner">-</div>
+            <!-- Removed Injuries and Campaign points sections as requested -->
             </div>
         </div>
     </div>
@@ -217,35 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 <script>
-// Show effect preview for selected trait
-function traitEffect() {
-    var select = document.getElementById('trait_select');
-    var preview = document.getElementById('trait-effect-preview');
-    var effect = select.options[select.selectedIndex].getAttribute('data-effect');
-    if (effect && select.value) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
-    } else {
-        preview.style.display = 'none';
-        preview.textContent = '';
-    }
-}
-// Show effect preview for selected ability
-function abilityEffect() {
-    var select = document.getElementById('ability_select');
-    var preview = document.getElementById('ability-effect-preview');
-    var effect = select.options[select.selectedIndex].getAttribute('data-effect');
-    if (effect && select.value) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
-    } else {
-        preview.style.display = 'none';
-        preview.textContent = '';
-    }
-}
-</script>
 
-// Trait remove logic and toggle trait/ability descriptions after DOM is loaded
+// Trait remove logic, add trait, and per-trait show/hide effect button logic
 window.addEventListener('DOMContentLoaded', function() {
     // Remove trait button logic
     function updateTraitsInput() {
@@ -259,22 +243,36 @@ window.addEventListener('DOMContentLoaded', function() {
             li.parentElement.removeChild(li);
             updateTraitsInput();
         }
+        if (e.target.classList.contains('show-effect-btn')) {
+            var trait = e.target.getAttribute('data-trait');
+            var effectDiv = e.target.parentElement.querySelector('.trait-effect-inline');
+            const norm = normalizeTraitName(trait);
+            if (effectDiv.style.display === 'none' || effectDiv.style.display === '') {
+                effectDiv.textContent = TRAIT_EFFECTS[norm] || '';
+                effectDiv.style.display = 'block';
+                e.target.textContent = 'Hide';
+            } else {
+                effectDiv.style.display = 'none';
+                e.target.textContent = '\u24D8';
+            }
+        }
     });
-        // --- TRAIT ADD/REMOVE ---
-            document.getElementById('add-trait-btn').onclick = function() {
-                console.log('Add Trait button clicked');
-                var select = document.getElementById('trait_select');
-                var trait = select.value;
-                if (!trait) return;
-                // Prevent duplicates
-                var exists = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).some(btn => btn.getAttribute('data-trait') === trait);
-                if (exists) return;
-                var li = document.createElement('li');
-                li.innerHTML = trait + ' <button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>';
-                document.getElementById('trait-list').appendChild(li);
-                // No direct onclick assignment; event delegation handles removal
-                updateTraitsInput();
-        };
+    // --- TRAIT ADD/REMOVE ---
+    document.getElementById('add-trait-btn').onclick = function() {
+        var select = document.getElementById('trait_select');
+        var trait = select.value;
+        if (!trait) return;
+        // Prevent duplicates
+        var exists = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).some(btn => btn.getAttribute('data-trait') === trait);
+        if (exists) return;
+        var li = document.createElement('li');
+        li.innerHTML = trait +
+            ' <button type="button" class="show-effect-btn" data-trait="' + trait + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
+            ' <button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
+            '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>';
+        document.getElementById('trait-list').appendChild(li);
+        updateTraitsInput();
+    };
     // --- ABILITY ADD/REMOVE ---
     function updateAbilitiesInput() {
         var abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn'))
@@ -300,150 +298,10 @@ window.addEventListener('DOMContentLoaded', function() {
             var li = document.createElement('li');
             li.innerHTML = ability + ' <button type="button" class="remove-ability-btn" data-ability="' + ability + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>';
             document.getElementById('ability-list').appendChild(li);
-            // No direct onclick assignment; event delegation handles removal
             updateAbilitiesInput();
         };
     }
-    var traitBtn = document.getElementById('toggle-trait-desc');
-    var traitDesc = document.getElementById('trait-desc-list');
-    if (traitBtn && traitDesc) {
-        traitBtn.onclick = function() {
-            if (traitDesc.style.display === 'none' || traitDesc.style.display === '') {
-                traitDesc.style.display = 'block';
-                traitBtn.textContent = 'Hide descriptions';
-            } else {
-                traitDesc.style.display = 'none';
-                traitBtn.textContent = 'Show descriptions';
-            }
-        };
-    }
-    var abBtnEdit = document.getElementById('toggle-ability-desc-edit');
-    var abDescEdit = document.getElementById('ability-desc-list-edit');
-    if (abBtnEdit && abDescEdit) {
-        abBtnEdit.onclick = function() {
-            if (abDescEdit.style.display === 'none' || abDescEdit.style.display === '') {
-                abDescEdit.style.display = 'block';
-                abBtnEdit.textContent = 'Hide descriptions';
-            } else {
-                abDescEdit.style.display = 'none';
-                abBtnEdit.textContent = 'Show descriptions';
-            }
-        };
-    }
-});
-
-// Show effect preview for selected trait
-function traitEffect() {
-    var select = document.getElementById('trait_select');
-    var preview = document.getElementById('trait-effect-preview');
-    var effect = select.options[select.selectedIndex].getAttribute('data-effect');
-    if (effect && select.value) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
-    } else {
-        preview.style.display = 'none';
-        preview.textContent = '';
-    }
-}
-// Show effect preview for selected ability
-function abilityEffect() {
-    var select = document.getElementById('ability_select');
-    var preview = document.getElementById('ability-effect-preview');
-    var effect = select.options[select.selectedIndex].getAttribute('data-effect');
-    if (effect && select.value) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
-    } else {
-        preview.style.display = 'none';
-        preview.textContent = '';
-    }
-}
-
-// Trait remove logic and toggle trait/ability descriptions after DOM is loaded
-window.addEventListener('DOMContentLoaded', function() {
-    // Remove trait button logic
-    function updateTraitsInput() {
-        var traits = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn'))
-            .map(btn => btn.getAttribute('data-trait'));
-        document.getElementById('traits-hidden-input').value = traits.join(', ');
-    }
-    document.getElementById('trait-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-trait-btn')) {
-            var li = e.target.parentElement;
-            li.parentElement.removeChild(li);
-            updateTraitsInput();
-        }
-    });
-        // --- TRAIT ADD/REMOVE ---
-            document.getElementById('add-trait-btn').onclick = function() {
-                console.log('Add Trait button clicked');
-                var select = document.getElementById('trait_select');
-                var trait = select.value;
-                if (!trait) return;
-                // Prevent duplicates
-                var exists = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).some(btn => btn.getAttribute('data-trait') === trait);
-                if (exists) return;
-                var li = document.createElement('li');
-                li.innerHTML = trait + ' <button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>';
-                document.getElementById('trait-list').appendChild(li);
-                // No direct onclick assignment; event delegation handles removal
-                updateTraitsInput();
-        };
-    // --- ABILITY ADD/REMOVE ---
-    function updateAbilitiesInput() {
-        var abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn'))
-            .map(btn => btn.getAttribute('data-ability'));
-        document.getElementById('abilities-hidden-input').value = abilities.join(', ');
-    }
-    document.getElementById('ability-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-ability-btn')) {
-            var li = e.target.parentElement;
-            li.parentElement.removeChild(li);
-            updateAbilitiesInput();
-        }
-    });
-    var addAbilityBtn = document.getElementById('add-ability-btn');
-    if (addAbilityBtn) {
-        addAbilityBtn.onclick = function() {
-            var select = document.getElementById('ability_select');
-            var ability = select.value;
-            if (!ability) return;
-            // Prevent duplicates
-            var exists = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).some(btn => btn.getAttribute('data-ability') === ability);
-            if (exists) return;
-            var li = document.createElement('li');
-            li.innerHTML = ability + ' <button type="button" class="remove-ability-btn" data-ability="' + ability + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>';
-            document.getElementById('ability-list').appendChild(li);
-            // No direct onclick assignment; event delegation handles removal
-            updateAbilitiesInput();
-        };
-    }
-    var traitBtn = document.getElementById('toggle-trait-desc');
-    var traitDesc = document.getElementById('trait-desc-list');
-    if (traitBtn && traitDesc) {
-        traitBtn.onclick = function() {
-            if (traitDesc.style.display === 'none' || traitDesc.style.display === '') {
-                traitDesc.style.display = 'block';
-                traitBtn.textContent = 'Hide descriptions';
-            } else {
-                traitDesc.style.display = 'none';
-                traitBtn.textContent = 'Show descriptions';
-            }
-        };
-    }
-    var abBtnEdit = document.getElementById('toggle-ability-desc-edit');
-    var abDescEdit = document.getElementById('ability-desc-list-edit');
-    if (abBtnEdit && abDescEdit) {
-        abBtnEdit.onclick = function() {
-            if (abDescEdit.style.display === 'none' || abDescEdit.style.display === '') {
-                abDescEdit.style.display = 'block';
-                abBtnEdit.textContent = 'Hide descriptions';
-            } else {
-                abDescEdit.style.display = 'none';
-                abBtnEdit.textContent = 'Show descriptions';
-            }
-        };
-    }
+    // Trait and ability description toggles removed as per request
 });
 </script>
 <script id="ability-costs-json" type="application/json">
