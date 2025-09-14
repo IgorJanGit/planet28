@@ -5,6 +5,7 @@ API for Planet 28 character abilities.
 
 ABILITIES = [
     {"name": "Aimed shot", "cost": 10, "effect": "Use an action to aim at an enemy's weak spot. Weapon does +1D8 damage on next attack this turn."},
+    {"name": "Sharpshooter", "cost": 15, "effect": "+1 Shooting for ranged attacks.", "modifiers": {"Shooting": 1}},
     {"name": "Drain", "cost": 25, "effect": "Remove 1 hit-point from any character within 5cm and add it to own hit-points."},
     {"name": "Heal", "cost": 20, "effect": "Restore 1D6 hit-points to any other character in base contact."},
     {"name": "Haggle", "cost": 30, "effect": "Haggle price of items in off-table games. Roll 1D6: 1-3 reduce by 1D4 credits, 4-6 by 1D10. Price can't go below 1 credit."},
@@ -24,8 +25,10 @@ def get_ability(name):
     """Get an ability by name (case-insensitive)."""
     for ab in ABILITIES:
         if ab["name"].lower() == name.lower():
+            if "modifiers" not in ab:
+                ab["modifiers"] = {}
             return ab
-    return None
+    return {"name": name, "modifiers": {}}
 
 def add_ability_to_character(character, ability_name):
     """Add an ability to a character, updating points and abilities list."""

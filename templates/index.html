@@ -2,68 +2,124 @@
 <html>
 <head>
     <title>Planet 28 Character Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .sheet-box {
+            border: 4px solid #000;
+            width: 400px;
+            margin: 20px auto;
+            padding: 0;
+            background: #fff;
+        }
+        .sheet-row, .sheet-header, .sheet-section {
+            border-bottom: 2px solid #000;
+            padding: 4px 8px;
+        }
+        .sheet-header { text-align: center; font-weight: bold; font-size: 1.1em; }
+        .sheet-table { width: 100%; border-collapse: collapse; }
+        .sheet-table th, .sheet-table td {
+            border: 1px solid #000;
+            text-align: center;
+            padding: 2px 4px;
+        }
+        .sheet-section-title { font-weight: bold; margin-top: 4px; }
+        .sheet-flex { display: flex; }
+        .sheet-half { width: 50%; border-right: 2px solid #000; box-sizing: border-box; }
+        .sheet-half:last-child { border-right: none; }
+        .sheet-quarter { width: 50%; border-top: 2px solid #000; box-sizing: border-box; }
+        .sheet-quarter-inner { padding: 4px; min-height: 40px; }
+        .sheet-list { min-height: 40px; margin: 0; padding-left: 16px; }
+        .sheet-list li { text-align: left; }
+        .sheet-label { font-weight: bold; }
+        .sheet-row:last-child, .sheet-section:last-child { border-bottom: none; }
+        .sheet-nav { text-align: center; margin: 18px 0 0 0; }
+        .sheet-nav a { margin: 0 8px; text-decoration: none; color: #222; font-weight: bold; }
+        .sheet-nav a:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
-    <h1>Planet 28 Character Generator</h1>
-    <form action="/set_name" method="post">
-        <label>Character Name: <input type="text" name="name" value="{{ character['Name'] }}" required></label>
-        <button type="submit">Set Name</button>
-    </form>
-    <p>Points: {{ character['Points'] }}</p>
-    <p>Skills: {{ character['Skills'] }}</p>
-    <p>Speed: {{ character['Speed'] }} | Hit-points: {{ character['Hit-points'] }}</p>
-    {% include '_trait_ability_block.html' %}
-    <form action="/remove_trait" method="post">
-        <label>Remove Trait:
-            <select name="trait" {% if not trait_objs %}disabled{% endif %}>
-                {% for trait in trait_objs %}
-                    <option value="{{ trait.name }}">{{ trait.name }}</option>
-                {% endfor %}
-            </select>
-        </label>
-        <button type="submit" {% if not trait_objs %}disabled{% endif %}>Remove Trait</button>
-    </form>
-    <form action="/remove_ability" method="post">
-        <label>Remove Ability:
-            <select name="ability" {% if not ability_objs %}disabled{% endif %}>
-                {% for ab in ability_objs %}
-                    <option value="{{ ab.name }}">{{ ab.name }}</option>
-                {% endfor %}
-            </select>
-        </label>
-        <button type="submit" {% if not ability_objs %}disabled{% endif %}>Remove Ability</button>
-    </form>
-    <h3>Equipment</h3>
-    <ul>
-    {% for eq in character['Equipment'] %}
-        {% if eq.name is defined %}
-            <li><b>{{ eq.name }}</b> (Range: {{ eq.range }}cm, Damage: {{ eq.damage }}, Cost: {{ eq.cost }}{% if eq.one_handed %}, One-handed{% endif %})</li>
+<div class="sheet-box">
+    <div class="sheet-header">Character sheet.</div>
+    <div class="sheet-row">
+        <form action="/set_name" method="post" style="display:inline;">
+            <span class="sheet-label">Name:</span>
+            <input type="text" name="name" value="{{ character['Name'] }}" style="width:120px;">
+            <button type="submit">Set</button>
+        </form>
+        <form action="/set_points" method="post" style="float:right;display:inline;">
+            <span class="sheet-label">Points cost:</span>
+            <input type="number" name="points" value="{{ character['Points'] }}" style="width:60px;">
+            <button type="submit">Set</button>
+        </form>
+    </div>
+    <div class="sheet-row">
+        <table class="sheet-table">
+            <tr><th>Agility</th><th>Shooting</th><th>Fighting</th><th>Psyche</th><th>Awareness</th></tr>
+            <tr>
+                <td>{{ character['Skills']['Agility'] }}</td>
+                <td>{{ character['Skills']['Shooting'] }}</td>
+                <td>{{ character['Skills']['Fighting'] }}</td>
+                <td>{{ character['Skills']['Psyche'] }}</td>
+                <td>{{ character['Skills']['Awareness'] }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="sheet-row">
+        <table class="sheet-table">
+            <tr><td>Speed</td><td>Hit-points</td></tr>
+            <tr><td>{{ character['Speed'] }}</td><td>{{ character['Hit-points'] }}</td></tr>
+        </table>
+    </div>
+    <div class="sheet-section">
+        <div class="sheet-section-title">Traits:</div>
+        <ul class="sheet-list">
+        {% for trait in trait_objs %}
+            <li><b>{{ trait.name }}</b>{% if trait.cost is not none %} ({{ trait.cost }}){% endif %}: {{ trait.effect }}</li>
         {% else %}
-            <li>{{ eq }}</li>
-        {% endif %}
-    {% else %}
-        <li>-</li>
-    {% endfor %}
-    </ul>
-    <form action="/remove_equipment" method="post">
-        <label>Remove Equipment:
-            <select name="eq_name" {% if not character['Equipment'] %}disabled{% endif %}>
+            <li>-</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="sheet-section">
+        <div class="sheet-section-title">Abilities:</div>
+        <ul class="sheet-list">
+        {% for ab in ability_objs %}
+            <li><b>{{ ab.name }}</b>{% if ab.cost is not none %} ({{ ab.cost }}){% endif %}: {{ ab.effect }}</li>
+        {% else %}
+            <li>-</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="sheet-flex">
+        <div class="sheet-half">
+            <div class="sheet-section-title">Equipment:</div>
+            <div class="sheet-quarter-inner">
+                <ul class="sheet-list">
                 {% for eq in character['Equipment'] %}
                     {% if eq.name is defined %}
-                        <option value="{{ eq.name }}">{{ eq.name }}</option>
+                        <li><b>{{ eq.name }}</b> (Range: {{ eq.range }}cm, Damage: {{ eq.damage }}, Cost: {{ eq.cost }}{% if eq.one_handed %}, One-handed{% endif %})</li>
                     {% else %}
-                        <option value="{{ eq }}">{{ eq }}</option>
+                        <li>{{ eq }}</li>
                     {% endif %}
+                {% else %}
+                    <li>-</li>
                 {% endfor %}
-            </select>
-        </label>
-        <button type="submit" {% if not character['Equipment'] %}disabled{% endif %}>Remove Equipment</button>
-    </form>
-    <nav>
-        <a href="/traits">Add Traits</a> |
-        <a href="/abilities">Add Abilities</a> |
-        <a href="/arcana">View Arcana</a> |
-        <a href="/export"><b>Export/Print Sheet</b></a>
-    </nav>
+                </ul>
+            </div>
+        </div>
+        <div class="sheet-half">
+            <div class="sheet-section-title">Injuries:</div>
+            <div class="sheet-quarter-inner">-</div>
+            <div class="sheet-section-title">Campaign points:</div>
+            <div class="sheet-quarter-inner">-</div>
+        </div>
+    </div>
+</div>
+<div class="sheet-nav">
+    <a href="/traits">Add Traits</a>
+    <a href="/abilities">Add Abilities</a>
+    <a href="/arcana">View Arcana</a>
+    <a href="/export">Export/Print Sheet</a>
+</div>
 </body>
 </html>

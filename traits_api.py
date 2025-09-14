@@ -5,10 +5,10 @@ API for Planet 28 character traits.
 
 TRAITS = [
     {"name": "Ammo smith", "cost": 15, "effect": "After each game this character may craft 1 piece of ammo for any weapon of their choice. This is automatically added to their equipment."},
-    {"name": "Animal", "cost": -20, "effect": "Cannot use abilities or shoot. -1(P) during break tests."},
+    {"name": "Animal", "cost": -20, "effect": "Cannot use abilities or shoot. -1(P) during break tests.", "modifiers": {"Psyche": -1}},
     {"name": "Armless", "cost": -20, "effect": "Missing an arm. May only wield a single 1 handed weapon or use a single item at any time."},
     {"name": "Blessed", "cost": 50, "effect": "Roll 2D10 for all skill rolls and keep the lowest score."},
-    {"name": "Big", "cost": 8, "effect": "+1(F) when charging. -3cm speed."},
+    {"name": "Big", "cost": 8, "effect": "+1(F) when charging. -3cm speed.", "modifiers": {"Fighting": 1}},
     {"name": "Bulwark", "cost": 10, "effect": "Enemies do not receive the standard +1D4(F) when charging this character."},
     {"name": "Brawler", "cost": 9, "effect": "Fists do an additional +1D6 damage."},
     {"name": "Brave", "cost": 15, "effect": "May reroll 1 failed break test per turn."},
@@ -61,8 +61,10 @@ def get_trait(name):
     """Get a trait by name (case-insensitive)."""
     for trait in TRAITS:
         if trait["name"].lower() == name.lower():
+            if "modifiers" not in trait:
+                trait["modifiers"] = {}
             return trait
-    return None
+    return {"name": name, "modifiers": {}}
 
 def add_trait_to_character(character, trait_name):
     """Add a trait to a character, updating points and traits list."""

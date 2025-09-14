@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Export Warband - {{ warband }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #fff; }
+        .wb-title { text-align: center; font-size: 1.4em; font-weight: bold; margin: 24px 0 16px 0; }
+        .char-sheet, .vehicle-sheet {
+            border: 2px solid #000; margin: 18px auto; padding: 12px 18px; width: 420px; background: #fafafa;
+            page-break-inside: avoid; break-inside: avoid;
+        }
+        .char-sheet h2, .vehicle-sheet h2 { margin: 0 0 8px 0; font-size: 1.1em; }
+        .section-title { font-weight: bold; margin-top: 8px; }
+        ul { margin: 0 0 8px 0; padding-left: 18px; }
+        .sheet-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        .sheet-table th, .sheet-table td { border: 1px solid #000; text-align: center; padding: 2px 4px; }
+        .dev-note { color: #b00; font-style: italic; margin: 12px 0; }
+        .print-btn { display: block; margin: 20px auto; padding: 10px 24px; font-size: 1.1em; background: #222; color: #fff; border: none; border-radius: 6px; }
+        .print-btn:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <div class="wb-title">Warband: {{ warband }}</div>
+    <button class="print-btn" onclick="window.print()">Print or Save as PDF</button>
+    {% for char in characters %}
+    <div class="char-sheet">
+        <h2>Character: {{ char['Name'] }}</h2>
+        <div><b>Points:</b> {{ char['Points'] }}</div>
+        <table class="sheet-table">
+            <tr><th>Agility</th><th>Shooting</th><th>Fighting</th><th>Psyche</th><th>Awareness</th></tr>
+            <tr>
+                <td>{{ char['Skills']['Agility'] }}</td>
+                <td>{{ char['Skills']['Shooting'] }}</td>
+                <td>{{ char['Skills']['Fighting'] }}</td>
+                <td>{{ char['Skills']['Psyche'] }}</td>
+                <td>{{ char['Skills']['Awareness'] }}</td>
+            </tr>
+        </table>
+        <div><b>Speed:</b> {{ char['Speed'] }} | <b>Hit-points:</b> {{ char['Hit-points'] }}</div>
+        <div class="section-title">Traits:</div>
+        <ul>
+        {% for t in char['Traits'] %}<li>{{ t }}</li>{% else %}<li>-</li>{% endfor %}
+        </ul>
+        <div class="section-title">Abilities:</div>
+        <ul>
+        {% for a in char['Abilities'] %}<li>{{ a }}</li>{% else %}<li>-</li>{% endfor %}
+        </ul>
+        <div class="section-title">Equipment:</div>
+        <ul>
+        {% for eq in char['Equipment'] %}<li>{{ eq }}</li>{% else %}<li>-</li>{% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+    <div class="dev-note">Vehicles (in development):</div>
+    {% for v in vehicles %}
+    <div class="vehicle-sheet">
+        <h2>Vehicle: {{ v['Name'] }}</h2>
+        <div><b>Type:</b> {{ v['Type'] }}</div>
+        <div class="section-title">Traits:</div>
+        <ul>
+        {% for t in v['Traits'] %}<li>{{ t }}</li>{% else %}<li>-</li>{% endfor %}
+        </ul>
+        <div class="section-title">Abilities:</div>
+        <ul>
+        {% for a in v['Abilities'] %}<li>{{ a }}</li>{% else %}<li>-</li>{% endfor %}
+        </ul>
+        <div class="section-title">Sections:</div>
+        <ul>
+        {% for s in v['Sections'] %}<li>{{ s }}</li>{% else %}<li>-</li>{% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+    <div style="text-align:center;margin:20px;">
+        <a href="/warband/{{ warband }}">Back to Warband</a>
+    </div>
+</body>
+</html>

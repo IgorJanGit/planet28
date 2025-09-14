@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ warband }} - Warband Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0002; padding: 32px 24px 24px 24px; }
+        h1 { text-align: center; margin-bottom: 24px; }
+        .section { margin-bottom: 24px; }
+        .item-list { padding-left: 20px; }
+        .item-list li { margin-bottom: 4px; }
+        .btn { padding: 6px 16px; border-radius: 4px; border: none; background: #222; color: #fff; font-weight: bold; text-decoration: none; margin-right: 8px; }
+        .btn:hover { background: #444; }
+        .dev-note { font-size: 0.9em; color: #666; margin-top: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/" class="btn" style="float:right;margin-bottom:8px;">Go to Character Sheet</a>
+    <h1>{{ warband }} Warband</h1>
+    <div style="background:#f8f8f8;border:2px solid #ddd;border-radius:8px;padding:16px 12px 12px 12px;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:space-between;">
+        <div style="font-size:1.1em;">
+            <b>Points:</b>
+            {% set over_limit = total_points_spent > (warband_points if warband_points is not none else 500) %}
+            {% if over_limit %}
+                <span style="color:red;font-weight:bold;">({{ total_points_spent }}/{{ warband_points if warband_points is not none else 500 }})</span>
+            {% else %}
+                <span style="color:green;font-weight:bold;">({{ total_points_spent }}/{{ warband_points if warband_points is not none else 500 }})</span>
+            {% endif %}
+        </div>
+        <form action="/set_warband_points/{{ warband }}" method="post" style="display:flex;align-items:center;gap:8px;">
+            <label for="wb_points"><b>Set Limit:</b></label>
+            <input type="number" id="wb_points" name="points" value="{{ warband_points if warband_points is not none else 500 }}" min="1" style="width:80px;">
+            <button class="btn" type="submit">Set</button>
+        </form>
+    </div>
+    <div class="section">
+        <form action="/add_character" method="post" style="display:inline;">
+            <input type="text" name="char_name" placeholder="New character name" required>
+            <button class="btn" type="submit">Add Character</button>
+        </form>
+        <form action="/add_vehicle" method="post" style="display:inline;">
+            <input type="text" name="vehicle_name" placeholder="New vehicle name" required>
+            <button class="btn" type="submit">Add Vehicle</button>
+        </form>
+    </div>
+    <div class="section">
+        <h3>Characters</h3>
+        <ul class="item-list">
+        {% for char in characters %}
+            <li>
+                {{ char }}
+                <a href="/edit_character/{{ warband }}/{{ char }}" class="btn">Edit</a>
+                <form action="/remove_character" method="post" style="display:inline;">
+                    <input type="hidden" name="char_name" value="{{ char }}">
+                    <button type="submit" class="btn" onclick="return confirm('Remove character {{ char }}?')">Remove</button>
+                </form>
+            </li>
+        {% else %}
+            <li>No characters yet.</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="section">
+        <h3>Vehicles</h3>
+        <ul class="item-list">
+        {% for v in vehicles %}
+            <li>
+                {{ v }}
+                <form action="/remove_vehicle" method="post" style="display:inline;">
+                    <input type="hidden" name="vehicle_name" value="{{ v }}">
+                    <button type="submit" class="btn" onclick="return confirm('Remove vehicle {{ v }}?')">Remove</button>
+                </form>
+            </li>
+        {% else %}
+            <li>No vehicles yet.</li>
+        {% endfor %}
+        </ul>
+        <div class="dev-note">Vehicles: Full management coming soon!</div>
+    </div>
+    <a href="/warbands" class="btn">Back to Warbands</a>
+    <a href="/export_warband/{{ warband }}" class="btn">Export Warband</a>
+</div>
+</body>
+</html>

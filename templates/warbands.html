@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Warbands - Planet 28</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0002; padding: 32px 24px 24px 24px; }
+        h1 { text-align: center; margin-bottom: 24px; }
+        ul { padding-left: 20px; }
+        .warband-link { font-size: 1.1em; text-decoration: none; color: #222; }
+        .warband-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Warbands</h1>
+    <div style="text-align:right;margin-bottom:10px;">
+        <a href="/rules" style="font-size:1.05em;color:#3366cc;text-decoration:underline;">How to Create a Warband (Rules)</a>
+    </div>
+    <form action="/create_warband" method="post" style="margin-bottom:18px;">
+        <input type="text" name="warband_name" placeholder="New warband name" required>
+        <button type="submit">Create Warband</button>
+    </form>
+    <ul style="list-style:none;padding:0;">
+    {% for wb in warbands %}
+        <li style="display:flex;align-items:center;justify-content:space-between;background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:10px 14px;margin-bottom:10px;">
+            <a class="warband-link" href="/warband/{{ wb }}" style="flex:1;font-size:1.1em;">{{ wb }}</a>
+            <form action="/delete_warband" method="post" style="margin:0;display:inline;" onsubmit="return confirm('Delete warband {{ wb }} and ALL its characters/vehicles? This cannot be undone!');">
+                <input type="hidden" name="warband_name" value="{{ wb }}">
+                <button type="submit" style="background:#c00;color:#fff;border:none;padding:4px 14px;border-radius:4px;cursor:pointer;font-size:0.98em;margin-left:12px;">Delete</button>
+            </form>
+        </li>
+    {% else %}
+        <li>No warbands yet.</li>
+    {% endfor %}
+    </ul>
+</div>
+</body>
+</html>
