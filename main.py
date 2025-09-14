@@ -6,7 +6,6 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 import json
@@ -17,7 +16,6 @@ from app.arcana_api import list_arcana
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Delete a warband and all its contents
 @app.post("/delete_warband")
