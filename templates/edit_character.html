@@ -81,9 +81,14 @@
         </table>
     </div>
     <div class="sheet-section">
-        <div class="sheet-section-title">Traits (comma separated):</div>
+    <div class="sheet-section-title">Traits:</div>
         <div id="trait-list-box">
             <input type="hidden" name="Traits" id="traits-hidden-input" value="{{ character['Traits']|join(', ') }}">
+            {% set trait_effects_dict = {} %}
+            {% for trait in traits %}
+                {% set norm_name = trait['name']|lower|trim %}
+                {% set _ = trait_effects_dict.update({norm_name: trait['effect']}) %}
+            {% endfor %}
             <ul id="trait-list" class="sheet-list" style="margin-bottom:6px;">
             {% for trait in character['Traits'] %}
                 <li>
@@ -98,23 +103,15 @@
             </ul>
             <button type="button" id="toggle-all-trait-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all trait effects</button>
             <div id="all-trait-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
-
             <!-- DEBUG: Show trait_effects_dict and character['Traits'] (safe for undefined) -->
             <div style="background:#ffe;border:1px solid #cc0;padding:6px 10px;margin:8px 0 8px 0;font-size:0.95em;color:#a60;">
                 <b>Debug:</b><br>
                 <b>trait_effects_dict:</b> {{ trait_effects_dict|default({})|tojson }}<br>
                 <b>character['Traits']:</b> {{ character['Traits']|default([])|join(', ') }}
             </div>
-
-{% set trait_effects_dict = {} %}
-
-{% for trait in traits %}
-    {% set norm_name = trait['name']|lower|trim %}
-    {% set _ = trait_effects_dict.update({norm_name: trait['effect']}) %}
-{% endfor %}
-<script id="trait-effects-json" type="application/json">
-{{ trait_effects_dict|tojson|safe }}
-</script>
+            <script id="trait-effects-json" type="application/json">
+            {{ trait_effects_dict|tojson|safe }}
+            </script>
 <script id="ability-effects-json" type="application/json">
 {% set ability_effects_dict = {} %}
 {% for ab in abilities %}
@@ -124,6 +121,21 @@
 {{ ability_effects_dict|tojson|safe }}
 </script>
 <script>
+// Show trait effect preview when selecting from dropdown
+function traitEffect() {
+    var select = document.getElementById('trait_select');
+    var preview = document.getElementById('trait-effect-preview');
+    var trait = select.value;
+    var norm = normalizeTraitName(trait);
+    var effect = TRAIT_EFFECTS[norm];
+    if (effect && trait) {
+        preview.style.display = 'block';
+        preview.textContent = effect;
+    } else {
+        preview.style.display = 'none';
+        preview.textContent = '';
+    }
+}
 // Map normalized trait names to effects for quick lookup
 const TRAIT_EFFECTS = JSON.parse(document.getElementById('trait-effects-json').textContent);
 const ABILITY_EFFECTS = JSON.parse(document.getElementById('ability-effects-json').textContent);
@@ -137,25 +149,49 @@ function normalizeTraitName(name) {
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-all-trait-effects');
     const effectsDiv = document.getElementById('all-trait-effects');
+    function getCurrentTraits() {
+        // Get all trait names from the hidden input (source of truth)
+        const input = document.getElementById('traits-hidden-input');
+        if (!input) return [];
+        return input.value.split(',').map(x => x.trim()).filter(x => x);
+    }
     function updateAllTraitEffectsBox() {
-        if (!effectsDiv || effectsDiv.style.display === 'none') return;
-        // Get all selected traits from the list
-        const traitNames = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
+    if (!effectsDiv || effectsDiv.style.display === 'none') return;
+    effectsDiv.innerHTML = '<div style="color:red;font-weight:bold;">TEST: updateAllTraitEffectsBox is running!</div>';
+        const traitNames = getCurrentTraits();
         let html = '';
-        traitNames.forEach(trait => {
-            const norm = normalizeTraitName(trait);
-            if (TRAIT_EFFECTS[norm]) {
-                html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[norm]}</div>`;
-            }
-        });
-        effectsDiv.innerHTML = html;
+        let debugLines = '';
+        if (traitNames.length === 0) {
+            html = '<i>No traits selected.</i>';
+        } else {
+            debugLines += 'DEBUG:\n';
+            html += '<div style="color:#a60;font-size:0.95em;margin-bottom:6px;">DEBUG: <br>';
+            traitNames.forEach(trait => {
+                const norm = normalizeTraitName(trait);
+                debugLines += `[${trait}] → [${norm}] → [` + (TRAIT_EFFECTS[norm] ? 'FOUND' : 'NOT FOUND') + `]\n`;
+                html += `[${trait}] → [${norm}] → [` + (TRAIT_EFFECTS[norm] ? 'FOUND' : 'NOT FOUND') + `]<br>`;
+            });
+            html += '</div>';
+            alert(debugLines);
+            traitNames.forEach(trait => {
+                const norm = normalizeTraitName(trait);
+                if (TRAIT_EFFECTS[norm]) {
+                    html += `<div style=\"margin-bottom:6px;\"><b>${trait}</b>: ${TRAIT_EFFECTS[norm]}</div>`;
+                } else {
+                    html += `<div style=\"margin-bottom:6px;\"><b>${trait}</b>: <i>No effect found.</i></div>`;
+                }
+            });
+        }
+    effectsDiv.innerHTML = html;
+    effectsDiv.style.display = 'block';
+    effectsDiv.style.border = '2px solid #c00';
     }
     if (toggleBtn && effectsDiv) {
         let shown = false;
         toggleBtn.addEventListener('click', function() {
             if (!shown) {
-                updateAllTraitEffectsBox();
                 effectsDiv.style.display = 'block';
+                updateAllTraitEffectsBox();
                 toggleBtn.textContent = 'Hide all trait effects';
                 shown = true;
             } else {
@@ -165,10 +201,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         // Live update when traits are added or removed
-        const observer = new MutationObserver(function() {
-            if (shown) updateAllTraitEffectsBox();
-        });
-        observer.observe(document.getElementById('trait-list'), { childList: true });
+        const input = document.getElementById('traits-hidden-input');
+        if (input) {
+            input.addEventListener('input', function() {
+                if (shown) updateAllTraitEffectsBox();
+            });
+        }
     }
 });
 </script>
@@ -189,12 +227,17 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
     <div class="sheet-section">
-        <div class="sheet-section-title">Abilities (comma separated):</div>
+    <div class="sheet-section-title">Abilities:</div>
         <div id="ability-list-box">
             <input type="hidden" name="Abilities" id="abilities-hidden-input" value="{{ character['Abilities']|join(', ') }}">
             <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
             {% for ab in character['Abilities'] %}
-                <li>{{ ab }} <button type="button" class="remove-ability-btn" data-ability="{{ ab }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button></li>
+                <li>
+                    {{ ab }}
+                    <button type="button" class="show-ability-effect-btn" data-ability="{{ ab }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
+                    <button type="button" class="remove-ability-btn" data-ability="{{ ab }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
+                    <div class="ability-effect-inline" data-ability="{{ ab }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
+                </li>
             {% endfor %}
             <button type="button" id="toggle-all-ability-effects" style="margin:6px 0 8px 0;padding:2px 12px;font-size:0.97em;">Show all ability effects</button>
             <div id="all-ability-effects" style="display:none;margin:8px 0 0 0;padding:8px 12px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
