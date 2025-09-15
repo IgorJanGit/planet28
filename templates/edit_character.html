@@ -141,7 +141,7 @@
                 <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
                 {% for ab in character['Abilities'] %}
                     <li>
-                        {{ ab }}
+                        <div>{{ ab }}</div>
                         <button type="button" class="show-ability-effect-btn" data-ability="{{ ab }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
                         <button type="button" class="remove-ability-btn" data-ability="{{ ab }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
                         <div class="ability-effect-inline" data-ability="{{ ab }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
@@ -167,7 +167,13 @@
         </div>
         
         <div style="margin-top:16px;">
+            <div class="sheet-section-title">Notes:</div>
             <textarea name="Notes" rows="3" style="width:100%;min-height:60px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Notes'] if character['Notes'] is defined else '' }}</textarea>
+        </div>
+
+        <div style="margin-top:16px;">
+            <div class="sheet-section-title">Backstory:</div>
+            <textarea name="Backstory" rows="5" style="width:100%;min-height:100px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Backstory'] if character['Backstory'] is defined else '' }}</textarea>
         </div>
 
         <div style="margin-top:16px;text-align:right;">
@@ -209,6 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const traitEffectsDiv = document.getElementById('all-trait-effects');
     const abilityEffectsDiv = document.getElementById('all-ability-effects');
     const saveStatusElement = document.getElementById('save-status');
+    
+    console.log("DOM loaded, elements initialized:");
+    console.log("abilityList:", abilityList ? "found" : "not found");
+    console.log("abilityEffectsDiv:", abilityEffectsDiv ? "found" : "not found");
+    console.log("toggleAbilityBtn:", toggleAbilityBtn ? "found" : "not found");
     
     // Auto-save variables
     let saveTimeout = null;
@@ -252,25 +263,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to update trait effects display
     function updateTraitEffectsDisplay() {
+        console.log("Updating trait effects display");
+        // Get all current traits from the list
         const traitNames = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
+        console.log("Current traits:", traitNames);
+        
+        // Build HTML for display
         let html = '';
-        traitNames.forEach(trait => {
-            if (TRAIT_EFFECTS[trait]) {
-                html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[trait]}</div>`;
-            }
-        });
+        if (traitNames.length === 0) {
+            html = '<div>No traits added yet.</div>';
+        } else {
+            traitNames.forEach(trait => {
+                if (TRAIT_EFFECTS[trait]) {
+                    html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[trait]}</div>`;
+                } else {
+                    html += `<div style="margin-bottom:6px;"><b>${trait}</b>: No effect description available.</div>`;
+                }
+            });
+        }
+        
+        // Update the content
         traitEffectsDiv.innerHTML = html;
     }
     
     // Function to update ability effects display
     function updateAbilityEffectsDisplay() {
+        console.log("Updating ability effects display");
+        // Get all current abilities from the list
         const abilityNames = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).map(btn => btn.getAttribute('data-ability'));
+        console.log("Current abilities:", abilityNames);
+        
+        // Build HTML for display
         let html = '';
-        abilityNames.forEach(ability => {
-            if (ABILITY_EFFECTS[ability]) {
-                html += `<div style="margin-bottom:6px;"><b>${ability}</b>: ${ABILITY_EFFECTS[ability]}</div>`;
-            }
-        });
+        if (abilityNames.length === 0) {
+            html = '<div>No abilities added yet.</div>';
+        } else {
+            abilityNames.forEach(ability => {
+                if (ABILITY_EFFECTS[ability]) {
+                    html += `<div style="margin-bottom:6px;"><b>${ability}</b>: ${ABILITY_EFFECTS[ability]}</div>`;
+                } else {
+                    html += `<div style="margin-bottom:6px;"><b>${ability}</b>: No effect description available.</div>`;
+                }
+            });
+        }
+        
+        // Update the content
         abilityEffectsDiv.innerHTML = html;
     }
     
@@ -402,9 +439,15 @@ document.addEventListener('DOMContentLoaded', function() {
             li.innerHTML = '<div>' + trait + '</div>' + 
                 '<button type="button" class="show-effect-btn" data-trait="' + trait + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
                 '<button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
-                '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:block;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + TRAIT_EFFECTS[trait] + '</div>';
+                '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + TRAIT_EFFECTS[trait] + '</div>';
             traitList.appendChild(li);
             updateTraitsInput();
+            
+            // If showing all effects, update the display
+            if (traitEffectsShown) {
+                updateTraitEffectsDisplay();
+            }
+            
             select.selectedIndex = 0;
             document.getElementById('trait-effect-preview').style.display = 'none';
         });
@@ -412,50 +455,50 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- ABILITY ADD/REMOVE ---
     function updateAbilitiesInput() {
-        var abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn'))
-            .map(btn => btn.getAttribute('data-ability'));
+        const abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).map(btn => btn.getAttribute('data-ability'));
         
         // Ensure we're setting an empty string if there are no abilities
         abilityInput.value = abilities.length > 0 ? abilities.join(',') : '';
         console.log("Updated abilities input value:", abilityInput.value);
-        
-        updatePoints();
         
         // Update ability effects display if it's visible
         if (abilityEffectsShown) {
             updateAbilityEffectsDisplay();
         }
         
+        updatePoints();
+        
         // Trigger auto-save
         scheduleSave();
     }
     
     // Event delegation for ability removal
-    document.getElementById('ability-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-ability-btn')) {
-            var li = e.target.parentElement;
-            li.parentElement.removeChild(li);
-            updateAbilitiesInput();
-            // If no abilities left, show a dash
-            var abilityList = document.getElementById('ability-list');
-            if (abilityList.children.length === 0) {
-                var dash = document.createElement('li');
-                dash.textContent = '-';
-                abilityList.appendChild(dash);
-            }
-        } else if (e.target.classList.contains('show-ability-effect-btn')) {
-            const ability = e.target.getAttribute('data-ability');
-            const effectDiv = e.target.parentNode.querySelector(`.ability-effect-inline[data-ability="${ability}"]`);
-            if (effectDiv) {
-                if (effectDiv.style.display === 'none') {
-                    effectDiv.style.display = 'block';
-                    effectDiv.textContent = ABILITY_EFFECTS[ability] || 'No effect description available.';
-                } else {
-                    effectDiv.style.display = 'none';
+    if (abilityList) {
+        abilityList.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-ability-btn')) {
+                e.target.parentNode.remove();
+                updateAbilitiesInput();
+                
+                // If no abilities left, show a dash
+                if (abilityList.children.length === 0) {
+                    var dash = document.createElement('li');
+                    dash.textContent = '-';
+                    abilityList.appendChild(dash);
+                }
+            } else if (e.target.classList.contains('show-ability-effect-btn')) {
+                const ability = e.target.getAttribute('data-ability');
+                const effectDiv = e.target.parentNode.querySelector(`.ability-effect-inline[data-ability="${ability}"]`);
+                if (effectDiv) {
+                    if (effectDiv.style.display === 'none') {
+                        effectDiv.style.display = 'block';
+                        effectDiv.textContent = ABILITY_EFFECTS[ability] || 'No effect description available.';
+                    } else {
+                        effectDiv.style.display = 'none';
+                    }
                 }
             }
-        }
-    });
+        });
+    }
     
     // Add ability button
     var addAbilityBtn = document.getElementById('add-ability-btn');
@@ -476,9 +519,15 @@ document.addEventListener('DOMContentLoaded', function() {
             li.innerHTML = '<div>' + ability + '</div>' + 
                 '<button type="button" class="show-ability-effect-btn" data-ability="' + ability + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
                 '<button type="button" class="remove-ability-btn" data-ability="' + ability + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
-                '<div class="ability-effect-inline" data-ability="' + ability + '" style="display:block;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + ABILITY_EFFECTS[ability] + '</div>';
+                '<div class="ability-effect-inline" data-ability="' + ability + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + ABILITY_EFFECTS[ability] + '</div>';
             abilityList.appendChild(li);
             updateAbilitiesInput();
+            
+            // If showing all effects, update the display
+            if (abilityEffectsShown) {
+                updateAbilityEffectsDisplay();
+            }
+            
             select.selectedIndex = 0;
             document.getElementById('ability-effect-preview').style.display = 'none';
         });
@@ -540,10 +589,17 @@ document.querySelectorAll('input[type="text"], input[type="number"], textarea').
     input.addEventListener('blur', scheduleSave);
 });
 
-// Handle special case for Notes field - save on typing with delay
+// Handle special case for Notes and Backstory fields - save on typing with delay
 const notesField = document.querySelector('textarea[name="Notes"]');
 if (notesField) {
     notesField.addEventListener('input', function() {
+        scheduleSave();
+    });
+}
+
+const backstoryField = document.querySelector('textarea[name="Backstory"]');
+if (backstoryField) {
+    backstoryField.addEventListener('input', function() {
         scheduleSave();
     });
 }
