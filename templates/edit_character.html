@@ -56,6 +56,13 @@
             padding: 5px 7px;
             background: #f9f9f9;
         }
+        /* Style for trait/ability dropdown options */
+        select option {
+            padding: 8px 6px;
+            white-space: normal;
+            min-height: 30px;
+            line-height: 1.3;
+        }
     </style>
 </head>
 <body style="background:#f4f4f4;">
@@ -119,7 +126,7 @@
                 <select id="trait_select" onchange="traitEffect();" style="flex-grow:1;margin-right:5px;">
                     <option value="">-- Select a trait --</option>
                     {% for trait in traits %}
-                    <option value="{{ trait['name'] }}" data-effect="{{ trait['effect'] }}">{{ trait['name'] }} ({{ trait['cost'] }})</option>
+                    <option value="{{ trait['name'] }}" data-effect="{{ trait['effect'] }}">{{ trait['name'] }} ({{ trait['cost'] }}) [{{ trait['effect'] }}]</option>
                     {% endfor %}
                 </select>
                 <button type="button" id="add-trait-btn">Add</button>
@@ -151,7 +158,7 @@
                 <select id="ability_select" onchange="abilityEffect();" style="flex-grow:1;margin-right:5px;">
                     <option value="">-- Select an ability --</option>
                     {% for ab in abilities %}
-                    <option value="{{ ab['name'] }}" data-effect="{{ ab['effect'] }}">{{ ab['name'] }} ({{ ab['cost'] }})</option>
+                    <option value="{{ ab['name'] }}" data-effect="{{ ab['effect'] }}">{{ ab['name'] }} ({{ ab['cost'] }}) [{{ ab['effect'] }}]</option>
                     {% endfor %}
                 </select>
                 <button type="button" id="add-ability-btn">Add</button>
@@ -396,9 +403,10 @@ function traitEffect() {
     var select = document.getElementById('trait_select');
     var preview = document.getElementById('trait-effect-preview');
     var effect = select.options[select.selectedIndex].getAttribute('data-effect');
+    // We're already showing the effect in the dropdown option text,
+    // so we'll only show the preview if explicitly wanted
     if (effect && select.value) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
+        preview.style.display = 'none'; // Changed to hide by default since effect is in dropdown
     } else {
         preview.style.display = 'none';
         preview.textContent = '';
@@ -410,9 +418,10 @@ function abilityEffect() {
     var select = document.getElementById('ability_select');
     var preview = document.getElementById('ability-effect-preview');
     var effect = select.options[select.selectedIndex].getAttribute('data-effect');
+    // We're already showing the effect in the dropdown option text,
+    // so we'll only show the preview if explicitly wanted
     if (effect && select.value) {
-        preview.style.display = 'block';
-        preview.textContent = effect;
+        preview.style.display = 'none'; // Changed to hide by default since effect is in dropdown
     } else {
         preview.style.display = 'none';
         preview.textContent = '';

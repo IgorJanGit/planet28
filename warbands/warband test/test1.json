@@ -1,1 +1,1 @@
-{"Name": "test1", "Points": 13, "Skills": {"Agility": 1, "Fighting": 1, "Shooting": 1, "Awareness": 1, "Psyche": 1}, "Speed": 10, "Hit-points": 20, "Traits": ["Ammo smith", "Animal", "Big"], "Abilities": [], "Equipment": [], "Notes": "fgbhsdfrgd"}
+{"Name": "test1", "Points": 108, "Skills": {"Agility": 1, "Fighting": 1, "Shooting": 1, "Awareness": 1, "Psyche": 1}, "Speed": 10, "Hit-points": 20, "Traits": ["Ammo smith", "Animal", "Big", "Bulwark"], "Abilities": ["Haggle", "Drain", "Loot"], "Equipment": [], "Notes": "fgbhsdfrgd"}
