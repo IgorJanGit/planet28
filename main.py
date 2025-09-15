@@ -10,12 +10,31 @@ import uvicorn
 import os
 import json
 import shutil
+import datetime
 from app.traits_api import list_traits, get_trait
 from app.abilities_api import list_abilities, get_ability
 from app.arcana_api import list_arcana
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+# Global config 
+def get_global_config():
+    config_path = "config.json"
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+                # Ensure boolean conversion for homebrew_enabled
+                if "homebrew_enabled" in config:
+                    if isinstance(config["homebrew_enabled"], str):
+                        config["homebrew_enabled"] = config["homebrew_enabled"].lower() == "true"
+                    else:
+                        config["homebrew_enabled"] = bool(config["homebrew_enabled"])
+                return config
+        except Exception as e:
+            print(f"Error reading global config: {e}")
+    return {"homebrew_enabled": False}
 
 # Delete a warband and all its contents
 @app.post("/delete_warband")
@@ -126,21 +145,135 @@ def export(request: Request):
         },
     )
 
+@app.post("/api/calculate_points")
+async def calculate_points(request: Request):
+    """API endpoint to calculate character points based on traits, abilities, and skills."""
+    try:
+        form_data = await request.form()
+        
+        # Get homebrew setting from the request
+        homebrew_enabled = form_data.get('homebrew_enabled', 'false').lower() == 'true'
+        
+        # Get traits and abilities
+        from app.traits_api import list_traits
+        from app.abilities_api import list_abilities
+        trait_costs = {t['name']: t['cost'] for t in list_traits()}
+        ability_costs = {a['name']: a['cost'] for a in list_abilities()}
+        
+        traits_str = form_data.get('traits', '')
+        abilities_str = form_data.get('abilities', '')
+        
+        # Process traits and abilities
+        trait_list = [t.strip() for t in traits_str.split(',') if t.strip()]
+        ability_list = [a.strip() for a in abilities_str.split(',') if a.strip()]
+        
+        # Base points cost - same regardless of homebrew setting
+        points = 10
+        
+        # Add costs for traits and abilities
+        for t in trait_list:
+            points += trait_costs.get(t, 0)
+                
+        for a in ability_list:
+            points += ability_costs.get(a, 0)
+        
+        # Get skill values, calculate costs
+        skill_point_cost = 10  # Each skill level above 1 costs 10 points
+        
+        # Get skills and calculate their costs
+        try:
+            agility = max(1, int(form_data.get('agility', 1)))
+            shooting = max(1, int(form_data.get('shooting', 1)))
+            fighting = max(1, int(form_data.get('fighting', 1)))
+            psyche = max(1, int(form_data.get('psyche', 1)))
+            awareness = max(1, int(form_data.get('awareness', 1)))
+            
+            # Enforce maximum skill value of 10 when homebrew is off
+            if not homebrew_enabled:
+                agility = min(10, agility)
+                shooting = min(10, shooting)
+                fighting = min(10, fighting)
+                psyche = min(10, psyche)
+                awareness = min(10, awareness)
+            
+            # Calculate skill costs
+            points += (agility - 1) * skill_point_cost
+            points += (shooting - 1) * skill_point_cost
+            points += (fighting - 1) * skill_point_cost
+            points += (psyche - 1) * skill_point_cost
+            points += (awareness - 1) * skill_point_cost
+            
+            # Debug output
+            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], points={points}")
+            
+            return {"points": points, "success": True}
+        except Exception as e:
+            print(f"Error calculating skill costs: {e}")
+            return {"error": f"Error calculating skill costs: {str(e)}", "success": False}
+    except Exception as e:
+        print(f"Error in calculate_points API: {e}")
+        return {"error": str(e), "success": False}
+
 @app.get("/warbands", response_class=HTMLResponse)
 def warbands(request: Request):
-    warbands = [d for d in os.listdir(WARBANDS_DIR) if os.path.isdir(os.path.join(WARBANDS_DIR, d))]
+    warbands = []
+    for d in os.listdir(WARBANDS_DIR):
+        if os.path.isdir(os.path.join(WARBANDS_DIR, d)):
+            warband_info = {"name": d, "homebrew_enabled": False}
+            
+            # Check if warband has a config file
+            config_path = os.path.join(WARBANDS_DIR, d, "warband_config.json")
+            if os.path.exists(config_path):
+                try:
+                    with open(config_path, "r") as f:
+                        config = json.load(f)
+                        warband_info["homebrew_enabled"] = config.get("homebrew_enabled", False)
+                except:
+                    # If there's an error reading the config, use default values
+                    pass
+            
+            warbands.append(warband_info)
+            
     return templates.TemplateResponse("warbands.html", {"request": request, "warbands": warbands})
 
 @app.post("/create_warband")
-def create_warband(warband_name: str = Form(...)):
+def create_warband(warband_name: str = Form(...), homebrew_enabled: str = Form(None)):
     path = os.path.join(WARBANDS_DIR, warband_name)
     os.makedirs(path, exist_ok=True)
-    return RedirectResponse("/warbands", status_code=303)
+    
+    # Print debug info
+    print(f"Create warband - Received homebrew_enabled: '{homebrew_enabled}', type: {type(homebrew_enabled)}")
+    
+    # Save the homebrew setting in a config file
+    # The checkbox sends "1" when checked, None when unchecked
+    homebrew_value = homebrew_enabled == "1"
+    print(f"Create warband - Converted homebrew_value: {homebrew_value}")
+    
+    config = {
+        "homebrew_enabled": homebrew_value,
+        "created_at": str(datetime.datetime.now())
+    }
+    
+    with open(os.path.join(path, "warband_config.json"), "w") as f:
+        json.dump(config, f)
+    
+    # Set the new warband as the selected warband in cookie
+    response = RedirectResponse("/warbands", status_code=303)
+    response.set_cookie(key="warband", value=warband_name)
+    return response
 
 
 def _safe_cookie_key(warband):
     # Only allow alphanum and underscores in cookie keys
     return "warband_points_" + "".join(c if c.isalnum() else "_" for c in warband)
+
+# Add a route to select a warband
+@app.get("/select_warband/{warband}")
+def select_warband(request: Request, warband: str):
+    # Set the warband cookie and redirect to the warband page
+    response = RedirectResponse(f"/warband/{warband}", status_code=303)
+    response.set_cookie(key="warband", value=warband)
+    return response
 
 @app.get("/warband/{warband}", response_class=HTMLResponse)
 def warband_dashboard(request: Request, warband: str):
@@ -148,8 +281,36 @@ def warband_dashboard(request: Request, warband: str):
     chars = []
     vehicles = []
     total_points_spent = 0
+    homebrew_enabled = False
+    
     if os.path.exists(wb_path):
-        chars = [f[:-5] for f in os.listdir(wb_path) if f.endswith('.json') and not f.startswith('vehicle_')]
+        # Check if warband has a config file
+        config_path = os.path.join(wb_path, "warband_config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r") as f:
+                    config = json.load(f)
+                    # Convert to boolean to handle string values
+                    homebrew_enabled_value = config.get("homebrew_enabled", False)
+                    if isinstance(homebrew_enabled_value, str):
+                        homebrew_enabled = homebrew_enabled_value.lower() == "true"
+                    else:
+                        homebrew_enabled = bool(homebrew_enabled_value)
+                    # Print debug info
+                    print(f"Warband dashboard - Read homebrew_enabled from warband config: {homebrew_enabled}")
+            except Exception as e:
+                # If there's an error reading the config, try global config
+                print(f"Error reading warband config: {e}")
+                global_config = get_global_config()
+                homebrew_enabled = global_config.get("homebrew_enabled", False)
+                print(f"Warband dashboard - Using global homebrew_enabled: {homebrew_enabled}")
+        else:
+            # If no warband config exists, try global config
+            global_config = get_global_config()
+            homebrew_enabled = global_config.get("homebrew_enabled", False)
+            print(f"Warband dashboard - Using global homebrew_enabled: {homebrew_enabled}")
+                
+        chars = [f[:-5] for f in os.listdir(wb_path) if f.endswith('.json') and not f.startswith('vehicle_') and f != "warband_config.json"]
         vehicles = [f[8:-5] for f in os.listdir(wb_path) if f.startswith('vehicle_') and f.endswith('.json')]
         # Sum points for all characters
         for char_name in chars:
@@ -166,7 +327,15 @@ def warband_dashboard(request: Request, warband: str):
         warband_points = int(warband_points)
     except (TypeError, ValueError):
         warband_points = 500
-    return templates.TemplateResponse("warband_dashboard.html", {"request": request, "warband": warband, "characters": chars, "vehicles": vehicles, "warband_points": warband_points, "total_points_spent": total_points_spent})
+    return templates.TemplateResponse("warband_dashboard.html", {
+        "request": request, 
+        "warband": warband, 
+        "characters": chars, 
+        "vehicles": vehicles, 
+        "warband_points": warband_points, 
+        "total_points_spent": total_points_spent,
+        "homebrew_enabled": homebrew_enabled
+    })
 
 # Set warband points limit
 @app.post("/set_warband_points/{warband}")
@@ -176,6 +345,42 @@ def set_warband_points(request: Request, warband: str, points: int = Form(...)):
     response.set_cookie(key=cookie_key, value=str(points))
     return response
 
+# Toggle homebrew setting
+@app.post("/toggle_homebrew/{warband}")
+def toggle_homebrew(request: Request, warband: str, homebrew_enabled: str = Form(None)):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    config_path = os.path.join(wb_path, "warband_config.json")
+    
+    # Print debug info
+    print(f"Received homebrew_enabled: '{homebrew_enabled}', type: {type(homebrew_enabled)}")
+    
+    # Create or update the config file
+    # Convert the form value to a boolean
+    # Form checkbox sends "1" when checked, None when unchecked
+    homebrew_value = homebrew_enabled == "1"
+    print(f"Converted homebrew_value: {homebrew_value}")
+    
+    config = {"homebrew_enabled": homebrew_value}
+    
+    # If the config file exists, read existing settings and update only the homebrew setting
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                existing_config = json.load(f)
+                # Preserve other settings
+                for key, value in existing_config.items():
+                    if key != "homebrew_enabled":
+                        config[key] = value
+        except:
+            # If there's an error reading the config, just use the new config
+            pass
+    
+    # Save the updated config
+    with open(config_path, "w") as f:
+        json.dump(config, f)
+    
+    return RedirectResponse(f"/warband/{warband}", status_code=303)
+
 @app.post("/add_character")
 def add_character(request: Request, char_name: str = Form(...)):
     warband = request.cookies.get("warband")
@@ -184,7 +389,7 @@ def add_character(request: Request, char_name: str = Form(...)):
     wb_path = os.path.join(WARBANDS_DIR, warband)
     os.makedirs(wb_path, exist_ok=True)
     char_file = os.path.join(wb_path, f"{char_name}.json")
-    # Minimal character stub
+    # Complete character template with all required fields
     char_data = {
         'Name': char_name,
         'Points': 10,
@@ -194,9 +399,13 @@ def add_character(request: Request, char_name: str = Form(...)):
         'Traits': [],
         'Abilities': [],
         'Equipment': [],
+        'Notes': '',
+        'Backstory': '',
+        'Injuries': '',
+        'CampaignPoints': ''
     }
     with open(char_file, 'w') as f:
-        json.dump(char_data, f)
+        json.dump(char_data, f, indent=2)
     return RedirectResponse(f"/warband/{warband}", status_code=303)
 
 @app.post("/add_vehicle")
@@ -264,6 +473,36 @@ def export_warband(request: Request, warband: str):
 def edit_character_get(request: Request, warband: str, char_name: str):
     wb_path = os.path.join(WARBANDS_DIR, warband)
     char_file = os.path.join(wb_path, f"{char_name}.json")
+    
+    # Check if warband has homebrew enabled
+    homebrew_enabled = False
+    config_path = os.path.join(wb_path, "warband_config.json")
+    
+    # First try to get homebrew setting from warband config
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+                # Convert to boolean to handle string values
+                homebrew_enabled_value = config.get("homebrew_enabled", False)
+                if isinstance(homebrew_enabled_value, str):
+                    homebrew_enabled = homebrew_enabled_value.lower() == "true"
+                else:
+                    homebrew_enabled = bool(homebrew_enabled_value)
+                # Print debug info
+                print(f"Edit character get - Read homebrew_enabled from warband config: {homebrew_enabled}")
+        except Exception as e:
+            # If there's an error reading the config, try global config
+            print(f"Error reading warband config: {e}")
+            global_config = get_global_config()
+            homebrew_enabled = global_config.get("homebrew_enabled", False)
+            print(f"Edit character get - Using global homebrew_enabled: {homebrew_enabled}")
+    else:
+        # If no warband config exists, try global config
+        global_config = get_global_config()
+        homebrew_enabled = global_config.get("homebrew_enabled", False)
+        print(f"Edit character get - Using global homebrew_enabled: {homebrew_enabled}")
+    
     if not os.path.exists(char_file):
         return RedirectResponse(f"/warband/{warband}", status_code=303)
     with open(char_file, "r") as f:
@@ -297,7 +536,16 @@ def edit_character_get(request: Request, warband: str, char_name: str):
     # Pass both base and modified skills to template
     return templates.TemplateResponse(
         "edit_character.html",
-        {"request": request, "warband": warband, "character": character, "traits": traits, "abilities": abilities, "warband_points": warband_points, "mod_skills": mod_skills}
+        {
+            "request": request, 
+            "warband": warband, 
+            "character": character, 
+            "traits": traits, 
+            "abilities": abilities, 
+            "warband_points": warband_points, 
+            "mod_skills": mod_skills,
+            "homebrew_enabled": homebrew_enabled
+        }
     )
 
 @app.post("/edit_character/{warband}/{char_name}")
@@ -305,6 +553,36 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     form = await request.form()
     wb_path = os.path.join(WARBANDS_DIR, warband)
     char_file = os.path.join(wb_path, f"{char_name}.json")
+    
+    # Check if warband has homebrew enabled
+    homebrew_enabled = False
+    config_path = os.path.join(wb_path, "warband_config.json")
+    
+    # First try to get homebrew setting from warband config
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+                # Convert to boolean to handle string values
+                homebrew_enabled_value = config.get("homebrew_enabled", False)
+                if isinstance(homebrew_enabled_value, str):
+                    homebrew_enabled = homebrew_enabled_value.lower() == "true"
+                else:
+                    homebrew_enabled = bool(homebrew_enabled_value)
+                # Print debug info
+                print(f"Edit character post - Read homebrew_enabled from warband config: {homebrew_enabled}")
+        except Exception as e:
+            # If there's an error reading the config, try global config
+            print(f"Error reading warband config: {e}")
+            global_config = get_global_config()
+            homebrew_enabled = global_config.get("homebrew_enabled", False)
+            print(f"Edit character post - Using global homebrew_enabled: {homebrew_enabled}")
+    else:
+        # If no warband config exists, try global config
+        global_config = get_global_config()
+        homebrew_enabled = global_config.get("homebrew_enabled", False)
+        print(f"Edit character post - Using global homebrew_enabled: {homebrew_enabled}")
+    
     if not os.path.exists(char_file):
         return RedirectResponse(f"/warband/{warband}", status_code=303)
     with open(char_file, "r") as f:
@@ -336,17 +614,67 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     # Remove duplicates
     trait_list = list(dict.fromkeys(trait_list))
     ability_list = list(dict.fromkeys(ability_list))
+    
+    # Base points cost - same regardless of homebrew setting
     points = 10
+    
+    # Add costs for traits and abilities
     for t in trait_list:
         points += trait_costs.get(t, 0)
+            
     for a in ability_list:
         points += ability_costs.get(a, 0)
+    
+    # Get skill values from the form, ensuring minimum value of 1
+    try:
+        agility = max(1, int(form.get('Agility', character['Skills']['Agility'])))
+    except (ValueError, TypeError):
+        agility = 1
+        
+    try:
+        shooting = max(1, int(form.get('Shooting', character['Skills']['Shooting'])))
+    except (ValueError, TypeError):
+        shooting = 1
+        
+    try:
+        fighting = max(1, int(form.get('Fighting', character['Skills']['Fighting'])))
+    except (ValueError, TypeError):
+        fighting = 1
+        
+    try:
+        psyche = max(1, int(form.get('Psyche', character['Skills']['Psyche'])))
+    except (ValueError, TypeError):
+        psyche = 1
+        
+    try:
+        awareness = max(1, int(form.get('Awareness', character['Skills']['Awareness'])))
+    except (ValueError, TypeError):
+        awareness = 1
+    
+    # Enforce maximum skill value of 10 when homebrew is off
+    if not homebrew_enabled:
+        agility = min(10, agility)
+        shooting = min(10, shooting)
+        fighting = min(10, fighting)
+        psyche = min(10, psyche)
+        awareness = min(10, awareness)
+    
+    # Calculate skill costs (each skill starts at 1, costs 10 points per level above 1)
+    skill_point_cost = 10
+    
+    points += (agility - 1) * skill_point_cost
+    points += (shooting - 1) * skill_point_cost
+    points += (fighting - 1) * skill_point_cost
+    points += (psyche - 1) * skill_point_cost
+    points += (awareness - 1) * skill_point_cost
+    
+    # Update character with new values
     character['Points'] = points
-    character['Skills']['Agility'] = int(form.get('Agility', character['Skills']['Agility']))
-    character['Skills']['Shooting'] = int(form.get('Shooting', character['Skills']['Shooting']))
-    character['Skills']['Fighting'] = int(form.get('Fighting', character['Skills']['Fighting']))
-    character['Skills']['Psyche'] = int(form.get('Psyche', character['Skills']['Psyche']))
-    character['Skills']['Awareness'] = int(form.get('Awareness', character['Skills']['Awareness']))
+    character['Skills']['Agility'] = agility
+    character['Skills']['Shooting'] = shooting
+    character['Skills']['Fighting'] = fighting
+    character['Skills']['Psyche'] = psyche
+    character['Skills']['Awareness'] = awareness
     character['Speed'] = int(form.get('Speed', character['Speed']))
     character['Hit-points'] = int(form.get('Hitpoints', character['Hit-points']))
     
@@ -379,7 +707,7 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
         character['Abilities'] = []
     
     with open(new_char_file, "w") as f:
-        json.dump(character, f)
+        json.dump(character, f, indent=2)
     
     print(f"Saved character to {new_char_file}")
     

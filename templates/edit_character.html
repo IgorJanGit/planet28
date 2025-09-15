@@ -40,7 +40,54 @@
         .sheet-table th, .sheet-table td {
             border: 1px solid #000;
             text-align: center;
-            padding: 2px 4px;
+            padding: 4px 6px;
+        }
+        .sheet-table th {
+            font-size: 1.25em;
+            font-weight: bold;
+            padding: 6px 8px;
+        }
+        .sheet-table input[type="number"] {
+            font-size: 1.4em;
+            font-weight: bold;
+            width: 80px; /* Further increased width for double digits */
+            text-align: center;
+            padding: 6px 25px 6px 6px; /* Added extra padding on the right side for the arrows */
+            position: relative; /* Needed for absolute positioning of spinner */
+            -moz-appearance: textfield; /* Firefox */
+            appearance: textfield; /* Standard property for compatibility */
+            box-sizing: border-box; /* Include padding in width */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .sheet-table input[type="number"]:focus {
+            background-color: #e8f0fe;
+            border-color: #2196F3;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+        }
+        
+        /* Style the spinner buttons for better visibility and positioning */
+        .sheet-table input[type="number"]::-webkit-inner-spin-button {
+            opacity: 1;
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 20px;
+        }
+        
+        /* Style for skill headers */
+        .sheet-table th {
+            font-size: 1.2em;
+            padding: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 5px;
         }
         .sheet-section-title { font-weight: bold; margin-top: 4px; margin-bottom: 6px; }
         .sheet-flex { display: flex; gap: 0; }
@@ -91,6 +138,9 @@
 <body style="background:#f4f4f4;">
 <div style="text-align:center;margin-bottom:10px;font-size:1.1em;">
     <b>Warband Points Limit:</b> {{ warband_points }}
+    {% if homebrew_enabled %}
+    <span style="margin-left:15px;background-color:#2196F3;color:white;padding:3px 8px;border-radius:12px;font-size:0.8em;">Homebrew Rules</span>
+    {% endif %}
 </div>
 
 <form action="/edit_character/{{ warband }}/{{ character['Name'] }}" method="post" autocomplete="off">
@@ -101,7 +151,7 @@
             <table class="sheet-table" style="border-collapse: collapse;">
                 <tr>
                     <td style="width:70%; text-align:left; padding:8px;"><b>Name:</b> <input type="text" name="Name" value="{{ character['Name'] }}" style="width:calc(100% - 60px); font-weight:bold; font-size:1em; border:1px solid #888; padding:2px 4px;"></td>
-                    <td style="width:30%; text-align:left; padding:8px;"><b>Points cost:</b> <input type="number" name="Points" value="{{ character['Points'] }}" style="width:60px;"></td>
+                    <td style="width:30%; text-align:left; padding:8px;"><b>Points cost:</b> <input type="number" id="points-field" name="Points" value="{{ character['Points'] }}" style="width:80px; font-weight:bold; background-color:#f8f8f8; color:#333;" readonly></td>
                 </tr>
             </table>
         </div>
@@ -110,21 +160,31 @@
             <table class="sheet-table">
                 <tr><th>Agility</th><th>Shooting</th><th>Fighting</th><th>Psyche</th><th>Awareness</th></tr>
                 <tr>
-                    <td><input type="number" name="Agility" value="{{ character['Skills']['Agility'] }}" style="width:40px;"></td>
-                    <td><input type="number" name="Shooting" value="{{ character['Skills']['Shooting'] }}" style="width:40px;"></td>
-                    <td><input type="number" name="Fighting" value="{{ character['Skills']['Fighting'] }}" style="width:40px;"></td>
-                    <td><input type="number" name="Psyche" value="{{ character['Skills']['Psyche'] }}" style="width:40px;"></td>
-                    <td><input type="number" name="Awareness" value="{{ character['Skills']['Awareness'] }}" style="width:40px;"></td>
+                    <td><input type="number" id="skill-Agility" name="Agility" value="{{ character['Skills']['Agility'] }}" min="1" {% if not homebrew_enabled %}max="10"{% endif %} class="skill-input"></td>
+                    <td><input type="number" id="skill-Shooting" name="Shooting" value="{{ character['Skills']['Shooting'] }}" min="1" {% if not homebrew_enabled %}max="10"{% endif %} class="skill-input"></td>
+                    <td><input type="number" id="skill-Fighting" name="Fighting" value="{{ character['Skills']['Fighting'] }}" min="1" {% if not homebrew_enabled %}max="10"{% endif %} class="skill-input"></td>
+                    <td><input type="number" id="skill-Psyche" name="Psyche" value="{{ character['Skills']['Psyche'] }}" min="1" {% if not homebrew_enabled %}max="10"{% endif %} class="skill-input"></td>
+                    <td><input type="number" id="skill-Awareness" name="Awareness" value="{{ character['Skills']['Awareness'] }}" min="1" {% if not homebrew_enabled %}max="10"{% endif %} class="skill-input"></td>
                 </tr>
             </table>
+            <div style="text-align:center;margin-top:6px;font-size:0.9em;color:#666;">
+                Each skill starts at 1. Increasing a skill by +1 costs 10 points.
+                {% if not homebrew_enabled %}
+                <br>In standard rules, skills are limited to a maximum of 10.
+                {% endif %}
+                <br><span style="font-weight:bold; color: {{ '#2196F3' if homebrew_enabled else '#888' }};">
+                    Homebrew mode: {{ 'ON' if homebrew_enabled else 'OFF' }}
+                </span>
+            </div>
+            </div>
         </div>
 
         <div class="sheet-row">
             <table class="sheet-table">
-                <tr><td>Speed</td><td>Hit-points</td></tr>
+                <tr><th>Speed</th><th>Hit-points</th></tr>
                 <tr>
-                    <td><input type="number" name="Speed" value="{{ character['Speed'] }}" style="width:60px;"></td>
-                    <td><input type="number" name="Hitpoints" value="{{ character['Hit-points'] }}" style="width:60px;"></td>
+                    <td><input type="number" name="Speed" value="{{ character['Speed'] }}"></td>
+                    <td><input type="number" name="Hitpoints" value="{{ character['Hit-points'] }}"></td>
                 </tr>
             </table>
         </div>
@@ -251,6 +311,98 @@ const ABILITY_EFFECTS = {{ ability_effects_dict|tojson|safe }};
 const TRAIT_COSTS = JSON.parse(document.getElementById('trait-costs-json').textContent);
 const ABILITY_COSTS = JSON.parse(document.getElementById('ability-costs-json').textContent);
 
+// Ensure points are always calculated correctly when page loads or fields change
+window.onload = function() {
+    console.log("Window load event triggered");
+    
+    // Add direct event listeners to all skill inputs
+    document.querySelectorAll('.skill-input').forEach(input => {
+        console.log("Adding event listeners to skill input:", input.id);
+        
+        // Input event - triggered on any value change including keyboard, mouse, spinner buttons
+        input.addEventListener('input', function() {
+            console.log(`Input event on ${this.id} with value ${this.value}`);
+            recalculatePoints();
+        });
+        
+        // Force initial calculation
+        setTimeout(recalculatePoints, 200);
+    });
+};
+
+// Simplified recalculation function - more direct
+function recalculatePoints() {
+    try {
+        console.log("recalculatePoints called");
+        
+        // Get homebrew status
+        let isHomebrewEnabled = {{ 'true' if homebrew_enabled else 'false' }};
+        
+        // Start with base cost of 10
+        let totalPoints = 10;
+        
+        // Add trait costs
+        let traits = (document.getElementById('traits-hidden-input').value || '').split(',').filter(t => t.trim());
+        for (let trait of traits) {
+            if (TRAIT_COSTS[trait]) {
+                totalPoints += TRAIT_COSTS[trait];
+            }
+        }
+        
+        // Add ability costs
+        let abilities = (document.getElementById('abilities-hidden-input').value || '').split(',').filter(a => a.trim());
+        for (let ability of abilities) {
+            if (ABILITY_COSTS[ability]) {
+                totalPoints += ABILITY_COSTS[ability];
+            }
+        }
+        
+        // Calculate skill costs (10 points per level above 1)
+        const skillPointCost = 10;
+        const skillInputs = document.querySelectorAll('.skill-input');
+        
+        skillInputs.forEach(input => {
+            // Get skill value, default to 1 if invalid
+            let value = parseInt(input.value) || 1;
+            if (value < 1) value = 1;
+            
+            // Apply homebrew limits
+            if (!isHomebrewEnabled && value > 10) {
+                value = 10;
+                input.value = 10;
+            }
+            
+            // Calculate cost (10 points per level above 1)
+            let skillCost = (value - 1) * skillPointCost;
+            console.log(`${input.name}: ${value} costs ${skillCost} points`);
+            totalPoints += skillCost;
+        });
+        
+        // Update the points field
+        const pointsField = document.querySelector('input[name="Points"]');
+        if (pointsField) {
+            pointsField.value = totalPoints;
+            console.log("Points updated to:", totalPoints);
+            
+            // Visual feedback
+            pointsField.style.backgroundColor = '#ffffcc';
+            setTimeout(() => {
+                pointsField.style.backgroundColor = '#f8f8f8';
+            }, 300);
+        } else {
+            console.error("Points field not found!");
+        }
+        
+        // Schedule auto-save
+        if (typeof scheduleSave === 'function') {
+            scheduleSave();
+        }
+    } catch (error) {
+        console.error("Error in recalculatePoints:", error);
+        alert("Error calculating points: " + error.message);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const traitSelect = document.getElementById('trait_select');
     const abilitySelect = document.getElementById('ability_select');
@@ -263,6 +415,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const traitEffectsDiv = document.getElementById('all-trait-effects');
     const abilityEffectsDiv = document.getElementById('all-ability-effects');
     const saveStatusElement = document.getElementById('save-status');
+    
+    // Calculate initial points including skill costs
+    console.log("Calling updatePoints from DOMContentLoaded event");
+    setTimeout(updatePoints, 100); // Delay slightly to ensure all fields are loaded
     
     console.log("DOM loaded, elements initialized:");
     console.log("abilityList:", abilityList ? "found" : "not found");
@@ -615,26 +771,116 @@ function abilityEffect() {
     }
 }
 
-// Calculate points based on traits and abilities
+// Add global error handling to catch any JavaScript errors
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error("JavaScript error:", message, "at line", lineno, "column", colno, "source:", source);
+    alert("JavaScript error: " + message + " at line " + lineno);
+    return true;
+};
+
+// Calculate points based on traits, abilities, and skills
 function updatePoints() {
-    let basePoints = 10; // base cost
+    try {
+    console.log("updatePoints() called");
+    // Check if homebrew is enabled
+    let isHomebrewEnabled = {{ 'true' if homebrew_enabled else 'false' }};
+    console.log("Homebrew enabled:", isHomebrewEnabled);
+    
+    // Base cost is 10 regardless of homebrew setting
+    let basePoints = 10;
+    
+    // Add trait costs
     let traitInput = document.getElementById('traits-hidden-input').value;
-    let abilityInput = document.getElementById('abilities-hidden-input').value;
     let traits = traitInput.split(',').map(x => x.trim()).filter(x => x);
+    traits.forEach(t => { 
+        if (TRAIT_COSTS[t] !== undefined) {
+            // No discount regardless of homebrew mode - homebrew only affects skill limits
+            basePoints += TRAIT_COSTS[t];
+        }
+    });
+    
+    // Add ability costs
+    let abilityInput = document.getElementById('abilities-hidden-input').value;
     let abilities = abilityInput.split(',').map(x => x.trim()).filter(x => x);
-    let total = basePoints;
-    traits.forEach(t => { if (TRAIT_COSTS[t] !== undefined) total += TRAIT_COSTS[t]; });
-    abilities.forEach(a => { if (ABILITY_COSTS[a] !== undefined) total += ABILITY_COSTS[a]; });
-    document.getElementsByName('Points')[0].value = total;
+    abilities.forEach(a => { 
+        if (ABILITY_COSTS[a] !== undefined) {
+            // No discount regardless of homebrew mode - homebrew only affects skill limits
+            basePoints += ABILITY_COSTS[a];
+        }
+    });
+    
+    // Add skill costs (skills start at 1, each +1 costs 10 points regardless of homebrew setting)
+    let skillPointCost = 10; // Always 10 points regardless of homebrew setting
+    let skillInputs = document.querySelectorAll('input[name="Agility"], input[name="Shooting"], input[name="Fighting"], input[name="Psyche"], input[name="Awareness"]');
+    console.log("Calculating skill costs for:", Array.from(skillInputs).map(i => i.name + ":" + i.value));
+    skillInputs.forEach(input => {
+        let skillValue = parseInt(input.value) || 1;
+        if (skillValue < 1) skillValue = 1; // Ensure minimum value of 1
+        console.log(`Skill ${input.name}: value=${skillValue}, cost=${(skillValue - 1) * skillPointCost}`);
+        basePoints += (skillValue - 1) * skillPointCost; // Each level above 1 costs 10 points
+    });
+    
+    // Update the total points
+    const pointsField = document.getElementsByName('Points')[0];
+    if (pointsField) {
+        pointsField.value = basePoints;
+        console.log("Final points calculated:", basePoints);
+        
+        // Make the points field visually flash to indicate update
+        pointsField.style.backgroundColor = '#ffffcc';
+        setTimeout(() => {
+            pointsField.style.backgroundColor = '#f8f8f8';
+        }, 300);
+    } else {
+        console.error("Points field not found!");
+    }
     
     // Trigger auto-save when points are updated
     scheduleSave();
+    } catch (error) {
+        console.error("Error in updatePoints function:", error);
+        alert("Error calculating points: " + error.message);
+    }
+}
+}
+
+// Function to update costs when skill values change
+function updateSkillCost(input) {
+    // Homebrew status is already set at the top of the script
+    console.log("updateSkillCost called for", input.name, "with value", input.value);
+    
+    // Ensure skill value is at least 1
+    let value = parseInt(input.value) || 1;
+    if (value < 1) {
+        input.value = 1;
+        value = 1;
+    }
+    
+    // Enforce maximum value of 10 if homebrew is disabled
+    if (!isHomebrewEnabled && value > 10) {
+        input.value = 10;
+        value = 10;
+    }
+    
+    // Update total points immediately
+    console.log("Calling updatePoints from updateSkillCost");
+    updatePoints();
+    
+    // Force immediate recalculation if this is happening during initial load
+    setTimeout(updatePoints, 50);
 }
 
 // Add event listeners to all form inputs for auto-save
 document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
     input.addEventListener('change', scheduleSave);
     input.addEventListener('blur', scheduleSave);
+    
+    // For number inputs that affect points calculation
+    if (['Agility', 'Shooting', 'Fighting', 'Psyche', 'Awareness'].includes(input.name)) {
+        input.addEventListener('change', function() { updateSkillCost(this); });
+        input.addEventListener('input', function() { updateSkillCost(this); });
+        console.log(`Added event listeners to ${input.name} input`);
+    }
 });
 
 // Handle special case for Notes and Backstory fields - save on typing with delay
@@ -651,6 +897,114 @@ if (backstoryField) {
         scheduleSave();
     });
 }
+
+// Last resort - Direct inline script to ensure immediate execution
+document.addEventListener('DOMContentLoaded', function() {
+    // Add direct handler to skill inputs as soon as they're available
+    const skillInputs = document.querySelectorAll('.skill-input');
+    console.log("Immediate skill inputs:", skillInputs.length);
+    
+    skillInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            console.log(`Immediate input handler on ${this.id}: ${this.value}`);
+            setTimeout(recalculatePoints, 0);
+        });
+    });
+    
+    // Force calculation
+    setTimeout(recalculatePoints, 100);
+    setTimeout(recalculatePoints, 500);
+});
+</script>
+
+<!-- Inline script for API-based point calculation -->
+<script>
+// Function to calculate points using server API
+function updatePointsFromServer() {
+    try {
+        const formData = new FormData();
+        
+        // Add homebrew status
+        formData.append('homebrew_enabled', '{{ "true" if homebrew_enabled else "false" }}');
+        
+        // Add traits and abilities
+        formData.append('traits', document.getElementById('traits-hidden-input').value || '');
+        formData.append('abilities', document.getElementById('abilities-hidden-input').value || '');
+        
+        // Add skill values
+        formData.append('agility', document.querySelector('input[name="Agility"]').value || '1');
+        formData.append('shooting', document.querySelector('input[name="Shooting"]').value || '1');
+        formData.append('fighting', document.querySelector('input[name="Fighting"]').value || '1');
+        formData.append('psyche', document.querySelector('input[name="Psyche"]').value || '1');
+        formData.append('awareness', document.querySelector('input[name="Awareness"]').value || '1');
+        
+        console.log("Sending data to API:", 
+            document.querySelector('input[name="Agility"]').value,
+            document.querySelector('input[name="Shooting"]').value,
+            document.querySelector('input[name="Fighting"]').value,
+            document.querySelector('input[name="Psyche"]').value,
+            document.querySelector('input[name="Awareness"]').value
+        );
+        
+        // Call the API
+        fetch('/api/calculate_points', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("API returned points:", data.points);
+                
+                // Update the points field
+                const pointsField = document.getElementById('points-field');
+                if (pointsField) {
+                    pointsField.value = data.points;
+                    
+                    // Visual feedback
+                    pointsField.style.backgroundColor = '#ffffcc';
+                    setTimeout(() => {
+                        pointsField.style.backgroundColor = '#f8f8f8';
+                    }, 300);
+                }
+            } else {
+                console.error("API error:", data.error);
+            }
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+        });
+    } catch (error) {
+        console.error("Error in updatePointsFromServer:", error);
+    }
+}
+
+// Set up listeners when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, setting up event listeners");
+    
+    // Add event listeners to all skill inputs
+    const skillInputs = document.querySelectorAll('input[name="Agility"], input[name="Shooting"], input[name="Fighting"], input[name="Psyche"], input[name="Awareness"]');
+    
+    skillInputs.forEach(input => {
+        // Handle both input and change events for maximum compatibility
+        input.addEventListener('input', function() {
+            console.log(`Input event on ${this.name}: ${this.value}`);
+            updatePointsFromServer();
+        });
+        
+        input.addEventListener('change', function() {
+            console.log(`Change event on ${this.name}: ${this.value}`);
+            updatePointsFromServer();
+        });
+    });
+    
+    // Calculate initial points
+    updatePointsFromServer();
+    
+    // Fallback calculation after a delay
+    setTimeout(updatePointsFromServer, 1000);
+});
 </script>
 </form>
 </body>

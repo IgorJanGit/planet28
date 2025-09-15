@@ -1,1 +1,26 @@
-{"Name": "test1", "Points": 10, "Skills": {"Agility": 1, "Fighting": 1, "Shooting": 1, "Awareness": 1, "Psyche": 1}, "Speed": 10, "Hit-points": 20, "Traits": [], "Abilities": [], "Equipment": [], "Notes": "fgbhsdfrgd", "Backstory": "", "Injuries": "", "CampaignPoints": ""}
+{
+    "Equipment":  [
+
+                  ],
+    "CampaignPoints":  "",
+    "Skills":  {
+                   "Fighting":  1,
+                   "Agility":  1,
+                   "Shooting":  1,
+                   "Psyche":  1,
+                   "Awareness":  1
+               },
+    "Abilities":  [
+
+                  ],
+    "Injuries":  "",
+    "Points":  10,
+    "Name":  "test1",
+    "Traits":  [
+
+               ],
+    "Backstory":  "",
+    "Speed":  10,
+    "Hit-points":  20,
+    "Notes":  ""
+}
