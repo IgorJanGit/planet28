@@ -188,6 +188,22 @@ async def calculate_points(request: Request):
             psyche = max(1, int(form_data.get('psyche', 1)))
             awareness = max(1, int(form_data.get('awareness', 1)))
             
+            # Get hit-points and calculate cost
+            hit_points = int(form_data.get('hit_points', 20))  # Default is 20
+            hit_points_change = hit_points - 20  # Calculate change from default
+            
+            # Calculate cost: +/- 10 points for every 2 hit-points
+            hit_points_cost = (hit_points_change // 2) * 10
+            
+            # Get speed value - default is 10
+            speed = int(form_data.get('speed', 10))
+            
+            # For non-homebrew mode, speed is always 10 and has no cost
+            speed_cost = 0
+            if homebrew_enabled and speed != 10:
+                # In homebrew mode, speed costs can be calculated (10 points per point of speed)
+                speed_cost = (speed - 10) * 10
+            
             # Enforce maximum skill value of 10 when homebrew is off
             if not homebrew_enabled:
                 agility = min(10, agility)
@@ -203,8 +219,14 @@ async def calculate_points(request: Request):
             points += (psyche - 1) * skill_point_cost
             points += (awareness - 1) * skill_point_cost
             
+            # Add hit-points cost
+            points += hit_points_cost
+            
+            # Add speed cost (only applies in homebrew mode)
+            points += speed_cost
+            
             # Debug output
-            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], points={points}")
+            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], hit_points={hit_points}, hit_points_cost={hit_points_cost}, speed={speed}, speed_cost={speed_cost}, total_points={points}")
             
             return {"points": points, "success": True}
         except Exception as e:
@@ -668,6 +690,32 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     points += (psyche - 1) * skill_point_cost
     points += (awareness - 1) * skill_point_cost
     
+    # Calculate hit-points cost (+/- 10 points for every 2 hit-points)
+    try:
+        hit_points = int(form.get('Hitpoints', 20))
+        # Calculate difference from default 20 hit-points
+        hit_points_change = hit_points - 20
+        # Calculate cost (10 points per 2 hit-points)
+        hit_points_cost = (hit_points_change // 2) * 10
+        points += hit_points_cost
+    except (ValueError, TypeError):
+        hit_points = 20  # Default to 20 if invalid
+    
+    # Handle Speed
+    try:
+        # Get speed from form
+        speed = int(form.get('Speed', 10))
+        
+        # If not in homebrew mode, speed is always 10 (default)
+        if not homebrew_enabled:
+            speed = 10
+        else:
+            # In homebrew mode, calculate speed cost (10 points per point of speed difference)
+            speed_cost = (speed - 10) * 10
+            points += speed_cost
+    except (ValueError, TypeError):
+        speed = 10  # Default to 10 if invalid
+    
     # Update character with new values
     character['Points'] = points
     character['Skills']['Agility'] = agility
@@ -675,8 +723,8 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     character['Skills']['Fighting'] = fighting
     character['Skills']['Psyche'] = psyche
     character['Skills']['Awareness'] = awareness
-    character['Speed'] = int(form.get('Speed', character['Speed']))
-    character['Hit-points'] = int(form.get('Hitpoints', character['Hit-points']))
+    character['Speed'] = speed
+    character['Hit-points'] = hit_points
     
     # Debug
     print(f"Final trait_list before save: {trait_list}")

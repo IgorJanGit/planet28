@@ -183,10 +183,21 @@
             <table class="sheet-table">
                 <tr><th>Speed</th><th>Hit-points</th></tr>
                 <tr>
-                    <td><input type="number" name="Speed" value="{{ character['Speed'] }}"></td>
-                    <td><input type="number" name="Hitpoints" value="{{ character['Hit-points'] }}"></td>
+                    <td><input type="number" id="speed-field" name="Speed" value="{{ character['Speed'] }}" {% if not homebrew_enabled %}readonly{% endif %} min="1"></td>
+                    <td><input type="number" id="hitpoints-field" name="Hitpoints" value="{{ character['Hit-points'] }}" min="0" step="2"></td>
                 </tr>
             </table>
+            <div style="text-align:center;margin-top:6px;font-size:0.9em;color:#666;">
+                Every character starts with 20 hit-points. A character can increase their hit-points by a value of 2 for a cost of 10 points 
+                or decrease their hit-points by a value of 2 for a cost of -10 points.
+                <br>
+                Every character starts with a speed of 10cm. 
+                {% if not homebrew_enabled %}
+                Speed cannot be changed with points.
+                {% else %}
+                <span style="color:#2196F3;">In homebrew mode, Speed can be modified.</span>
+                {% endif %}
+            </div>
         </div>
         
         <div class="sheet-section">
@@ -938,12 +949,20 @@ function updatePointsFromServer() {
         formData.append('psyche', document.querySelector('input[name="Psyche"]').value || '1');
         formData.append('awareness', document.querySelector('input[name="Awareness"]').value || '1');
         
+        // Add hit-points
+        formData.append('hit_points', document.querySelector('input[name="Hitpoints"]').value || '20');
+        
+        // Add speed
+        formData.append('speed', document.querySelector('input[name="Speed"]').value || '10');
+        
         console.log("Sending data to API:", 
             document.querySelector('input[name="Agility"]').value,
             document.querySelector('input[name="Shooting"]').value,
             document.querySelector('input[name="Fighting"]').value,
             document.querySelector('input[name="Psyche"]').value,
-            document.querySelector('input[name="Awareness"]').value
+            document.querySelector('input[name="Awareness"]').value,
+            document.querySelector('input[name="Hitpoints"]').value,
+            document.querySelector('input[name="Speed"]').value
         );
         
         // Call the API
@@ -998,6 +1017,39 @@ document.addEventListener('DOMContentLoaded', function() {
             updatePointsFromServer();
         });
     });
+    
+    // Add event listeners to hit-points field
+    const hitPointsField = document.getElementById('hitpoints-field');
+    if (hitPointsField) {
+        hitPointsField.addEventListener('input', function() {
+            console.log(`Hit-points changed to: ${this.value}`);
+            // Ensure value is an even number
+            const value = parseInt(this.value) || 0;
+            if (value % 2 !== 0) {
+                this.value = value + 1;
+            }
+            updatePointsFromServer();
+        });
+        
+        hitPointsField.addEventListener('change', function() {
+            console.log(`Hit-points finalized at: ${this.value}`);
+            updatePointsFromServer();
+        });
+    }
+    
+    // Add event listeners to speed field
+    const speedField = document.getElementById('speed-field');
+    if (speedField) {
+        speedField.addEventListener('input', function() {
+            console.log(`Speed changed to: ${this.value}`);
+            updatePointsFromServer();
+        });
+        
+        speedField.addEventListener('change', function() {
+            console.log(`Speed finalized at: ${this.value}`);
+            updatePointsFromServer();
+        });
+    }
     
     // Calculate initial points
     updatePointsFromServer();
