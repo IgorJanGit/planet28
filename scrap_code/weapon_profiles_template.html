@@ -1,0 +1,94 @@
+{% comment %}
+This is a code snippet for displaying weapon profiles on the character sheet
+with collapsible special rules sections. This has been saved for future reference.
+{% endcomment %}
+
+<div class="weapon-profiles">
+    {% for weapon in weapon_profiles %}
+        <div class="weapon-profile">
+            <div class="weapon-header">
+                <span class="weapon-name">{{ weapon.name }}</span>
+                <button type="button" class="remove-weapon-btn" data-weapon="{{ weapon.name }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
+            </div>
+            <table class="weapon-stats">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Damage</th>
+                        <th>Range</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ weapon.type }}</td>
+                        <td>{{ weapon.size }}</td>
+                        <td>{{ weapon.damage }}</td>
+                        <td>{{ weapon.range if weapon.range else "-" }}</td>
+                        <td>{{ weapon.cost }} credits</td>
+                    </tr>
+                </tbody>
+            </table>
+            {% if weapon.special_rules %}
+                <div class="weapon-special-rules">
+                    <div class="rules-label collapsible-trigger">
+                        <span>Special Rules:</span>
+                        <span class="expand-icon">+</span>
+                    </div>
+                    <div class="rules-content collapsed">
+                        {% for rule in weapon.special_rules_expanded %}
+                            <div class="rule">
+                                <span class="rule-name">{{ rule.name }}</span>
+                                <div class="rule-description">{{ rule.description }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+{% comment %}
+JavaScript for the collapsible functionality
+{% endcomment %}
+
+<script>
+// Handle collapsible elements
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.collapsible-trigger')) {
+        const trigger = e.target.closest('.collapsible-trigger');
+        const content = trigger.nextElementSibling;
+        const expandIcon = trigger.querySelector('.expand-icon');
+        
+        // Toggle collapsed class
+        content.classList.toggle('collapsed');
+        
+        // Update the icon
+        if (content.classList.contains('collapsed')) {
+            expandIcon.textContent = '+';
+            // Reset max-height to allow transition to work correctly
+            content.style.maxHeight = null;
+            // Use setTimeout to allow the transition to complete
+            setTimeout(() => {
+                content.style.visibility = 'hidden';
+            }, 300);
+        } else {
+            expandIcon.textContent = '-';
+            // Make visible immediately before expanding
+            content.style.visibility = 'visible';
+            // Set max-height to allow content to show (with a large enough value)
+            content.style.maxHeight = content.scrollHeight + 'px';
+        }
+    }
+});
+
+// Initialize all collapsible elements
+document.querySelectorAll('.rules-content').forEach(content => {
+    // Ensure all rule contents start collapsed
+    content.classList.add('collapsed');
+    content.style.maxHeight = null;
+    content.style.visibility = 'hidden';
+});
+</script>

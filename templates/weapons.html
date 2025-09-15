@@ -17,41 +17,134 @@
             border-collapse: collapse;
             margin-bottom: 20px;
             background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.16), 0 2px 4px rgba(0,0,0,0.23);
+            font-size: 14px;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px 12px;
+            padding: 10px 12px;
             text-align: left;
+            vertical-align: middle;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #3f51b5;
+            color: white;
             font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+        .sortable {
+            cursor: pointer;
+            position: relative;
+        }
+        .sortable:hover {
+            background-color: #303f9f;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+        .sorted-asc .sort-icon {
+            content: "↑";
+            opacity: 1;
+        }
+        .sorted-desc .sort-icon {
+            content: "↓";
+            opacity: 1;
+        }
         .special-rule {
             cursor: pointer;
-            color: #0066cc;
-            text-decoration: underline;
+            color: #ff5722;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 1px dotted #ff5722;
+            transition: all 0.2s ease;
+            padding: 2px 0;
+        }
+        .special-rule:hover {
+            color: #e64a19;
+            background-color: rgba(255, 87, 34, 0.1);
         }
         .rule-description {
             display: none;
-            padding: 8px;
-            margin: 5px 0;
-            background-color: #f0f0f0;
-            border-left: 3px solid #0066cc;
+            padding: 12px;
+            margin: 8px 0;
+            background-color: #fff3e0;
+            border-left: 4px solid #ff5722;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
         }
         .filter-section {
             margin-bottom: 20px;
-            padding: 15px;
+            padding: 15px 20px;
             background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            border-left: 4px solid #3f51b5;
         }
-        .filter-section select, .filter-section button {
-            padding: 5px 10px;
-            margin-right: 10px;
+        .filter-section h3 {
+            margin-top: 0;
+            color: #3f51b5;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            color: #555;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .filter-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-button.apply {
+            background-color: #3f51b5;
+            color: white;
+        }
+        .filter-button.reset {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .filter-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .add-weapon-btn {
             background-color: #4CAF50;
@@ -61,52 +154,109 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            min-width: 80px;
+            text-align: center;
         }
         .add-weapon-btn:hover {
-            background-color: #45a049;
+            background-color: #388e3c;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
         }
         a.back-link {
             display: inline-block;
             margin-bottom: 20px;
             color: #0066cc;
             text-decoration: none;
+            font-weight: bold;
         }
         a.back-link:hover {
             text-decoration: underline;
         }
+        .page-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3f51b5;
+        }
+        .page-header h1 {
+            margin-bottom: 5px;
+            color: #3f51b5;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 16px;
+            margin-top: 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .action-button {
+            padding: 10px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        }
+        .rules-button {
+            background-color: #2196F3;
+            color: white;
+        }
+        .costs-button {
+            background-color: #4CAF50;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <a href="/warband/{{ warband }}" class="back-link">← Back to Warband</a>
-    <h1>Weapons List</h1>
-    <p>Select weapons to equip your character with.</p>
-    <div style="margin-bottom: 15px;">
-        <a href="/weapon_rules/{{ warband }}" style="color:#2196F3;text-decoration:none;font-weight:bold;margin-right:15px;">View Weapon Special Rules</a>
-        <a href="/weapon_cost_table/{{ warband }}" style="color:#4CAF50;text-decoration:none;font-weight:bold;">View Special Rules Cost Table</a>
+    <a href="/edit_character/{{ warband }}/{{ character_name }}" class="back-link">← Back to Character</a>
+    
+    <div class="page-header">
+        <h1>Weapons Selection</h1>
+        <p>Select weapons to equip your character. Click on special rules for detailed descriptions.</p>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="/weapon_rules/{{ warband }}" class="action-button rules-button">View Weapon Special Rules</a>
+        <a href="/weapon_cost_table/{{ warband }}" class="action-button costs-button">View Special Rules Cost Table</a>
     </div>
     
     <div class="filter-section">
         <h3>Filter Weapons</h3>
-        <select id="typeFilter">
-            <option value="">All Types</option>
-            {% for type in weapon_types %}
-            <option value="{{ type }}">{{ type }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="filterWeapons()">Filter</button>
-        <button onclick="resetFilters()">Reset</button>
+        <div class="filter-controls">
+            <div class="filter-group">
+                <label for="typeFilter">Weapon Type:</label>
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    {% for type in weapon_types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button onclick="filterWeapons()" class="filter-button apply">Apply Filters</button>
+                <button onclick="resetFilters()" class="filter-button reset">Reset</button>
+            </div>
+        </div>
     </div>
     
     <table id="weaponsTable">
         <thead>
             <tr>
-                <th>Weapon</th>
-                <th>Type</th>
-                <th>Size</th>
-                <th>Damage</th>
+                <th class="sortable" onclick="sortTable(0)">Weapon <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(1)">Type <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(2)">Size <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(3)">Damage <span class="sort-icon">↕</span></th>
                 <th>Special Rules</th>
-                <th>Range</th>
-                <th>Cost</th>
+                <th class="sortable" onclick="sortTable(5)">Range <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(6)">Cost <span class="sort-icon">↕</span></th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -184,6 +334,61 @@
             const rows = document.querySelectorAll('#weaponsTable tbody tr');
             rows.forEach(row => {
                 row.style.display = '';
+            });
+        }
+        
+        // Table sorting functionality
+        let currentSortColumn = -1;
+        let sortDirection = 1; // 1 for ascending, -1 for descending
+        
+        function sortTable(columnIndex) {
+            const table = document.getElementById('weaponsTable');
+            const headers = table.querySelectorAll('th.sortable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Reset all headers
+            headers.forEach(header => {
+                header.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            // Toggle sort direction if clicking on the same column
+            if (currentSortColumn === columnIndex) {
+                sortDirection *= -1;
+            } else {
+                sortDirection = 1;
+                currentSortColumn = columnIndex;
+            }
+            
+            // Update header class
+            if (sortDirection === 1) {
+                headers[columnIndex].classList.add('sorted-asc');
+                headers[columnIndex].querySelector('.sort-icon').textContent = '↑';
+            } else {
+                headers[columnIndex].classList.add('sorted-desc');
+                headers[columnIndex].querySelector('.sort-icon').textContent = '↓';
+            }
+            
+            // Sort the rows
+            rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+                
+                // Special handling for cost column
+                if (columnIndex === 6) {
+                    // Extract numbers from cost column (e.g., "15 credits" -> 15)
+                    aValue = parseInt(aValue.replace(/[^0-9-]/g, '')) || 0;
+                    bValue = parseInt(bValue.replace(/[^0-9-]/g, '')) || 0;
+                    return sortDirection * (aValue - bValue);
+                }
+                
+                // Default string comparison
+                return sortDirection * aValue.localeCompare(bValue);
+            });
+            
+            // Reorder the rows
+            rows.forEach(row => {
+                tbody.appendChild(row);
             });
         }
     </script>

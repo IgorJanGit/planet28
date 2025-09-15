@@ -62,32 +62,45 @@ WARBANDS_DIR = "warbands"
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    # Redirect to warbands selection if no warband is selected
+    # Check if a specific warband and character are provided in the URL query parameters
+    params = request.query_params
+    warband_param = params.get("warband")
+    character_param = params.get("character")
+    
+    # If specific parameters are provided, use them
+    if warband_param and character_param:
+        return RedirectResponse(f"/edit_character/{warband_param}/{character_param}", status_code=303)
+    
+    # Otherwise try to get warband and character from cookies
     warband = request.cookies.get("warband")
-    if not warband:
-        return RedirectResponse("/warbands", status_code=303)
-
-    # Get full trait/ability objects for display
-    trait_objs = [get_trait(t) for t in CHARACTER['Traits']]
-    ability_objs = [get_ability(a) for a in CHARACTER['Abilities']]
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "character": CHARACTER,
-            "trait_objs": trait_objs,
-            "ability_objs": ability_objs,
-        },
-    )
+    character_name = request.cookies.get("character")
+    
+    # If both exist, redirect to edit_character
+    if warband and character_name:
+        return RedirectResponse(f"/edit_character/{warband}/{character_name}", status_code=303)
+    
+    # If only warband exists, redirect to warband dashboard
+    if warband:
+        # Check if there are any characters in this warband
+        wb_path = os.path.join(WARBANDS_DIR, warband)
+        if os.path.exists(wb_path):
+            characters = [f.replace(".json", "") for f in os.listdir(wb_path) 
+                         if f.endswith(".json") and not f.startswith("vehicle_") and not f == "warband_config.json"]
+            if characters:
+                # Redirect to the first character's edit page
+                return RedirectResponse(f"/edit_character/{warband}/{characters[0]}", status_code=303)
+    
+    # As a last resort, redirect to warbands selection
+    return RedirectResponse("/warbands", status_code=303)
 
 @app.post("/set_name")
 def set_name(name: str = Form(...)):
-    CHARACTER['Name'] = name
+    # Deprecated - kept for reference but redirects to home which will further redirect to edit_character
     return RedirectResponse("/", status_code=303)
 
 @app.post("/set_points")
 def set_points(points: int = Form(...)):
-    CHARACTER['Points'] = points
+    # Deprecated - kept for reference but redirects to home which will further redirect to edit_character
     return RedirectResponse("/", status_code=303)
 
 @app.get("/traits", response_class=HTMLResponse)
@@ -131,20 +144,6 @@ def remove_equipment(eq_name: str = Form(...)):
     # Remove by name (works for both dict and str equipment)
     CHARACTER['Equipment'] = [eq for eq in CHARACTER['Equipment'] if not ((isinstance(eq, dict) and eq.get('name') == eq_name) or (isinstance(eq, str) and eq == eq_name))]
     return RedirectResponse("/", status_code=303)
-
-@app.get("/export", response_class=HTMLResponse)
-def export(request: Request):
-    trait_objs = [get_trait(t) for t in CHARACTER['Traits']]
-    ability_objs = [get_ability(a) for a in CHARACTER['Abilities']]
-    return templates.TemplateResponse(
-        "export.html",
-        {
-            "request": request,
-            "character": CHARACTER,
-            "trait_objs": trait_objs,
-            "ability_objs": ability_objs,
-        },
-    )
 
 @app.post("/api/calculate_points")
 async def calculate_points(request: Request):
@@ -495,22 +494,6 @@ def remove_vehicle(request: Request, vehicle_name: str = Form(...)):
         os.remove(vehicle_file)
     return RedirectResponse(f"/warband/{warband}", status_code=303)
 
-@app.get("/export_warband/{warband}", response_class=HTMLResponse)
-def export_warband(request: Request, warband: str):
-    wb_path = os.path.join(WARBANDS_DIR, warband)
-    chars = []
-    vehicles = []
-    if os.path.exists(wb_path):
-        for f in os.listdir(wb_path):
-            if f.endswith('.json'):
-                with open(os.path.join(wb_path, f), 'r') as file:
-                    data = json.load(file)
-                    if f.startswith('vehicle_'):
-                        vehicles.append(data)
-                    else:
-                        chars.append(data)
-    return templates.TemplateResponse("export_warband.html", {"request": request, "warband": warband, "characters": chars, "vehicles": vehicles})
-
 
 
 # --- Character Edit Routes ---
@@ -571,6 +554,7 @@ def edit_character_get(request: Request, warband: str, char_name: str):
         for stat, mod in ab.get('modifiers', {}).items():
             if stat in mod_skills:
                 mod_skills[stat] += mod
+                
     # Get warband points limit
     cookie_key = _safe_cookie_key(warband)
     warband_points = request.cookies.get(cookie_key)
@@ -578,6 +562,7 @@ def edit_character_get(request: Request, warband: str, char_name: str):
         warband_points = int(warband_points)
     except (TypeError, ValueError):
         warband_points = 500
+                
     # Pass both base and modified skills to template
     return templates.TemplateResponse(
         "edit_character.html",

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Export Character Sheet</title>
+    <title>Planet 28 Character Generator</title>
     <style>
-        body { font-family: Arial, sans-serif; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
         .sheet-box {
             border: 4px solid #000;
             width: 400px;
@@ -32,15 +32,25 @@
         .sheet-list li { text-align: left; }
         .sheet-label { font-weight: bold; }
         .sheet-row:last-child, .sheet-section:last-child { border-bottom: none; }
-        @media print { body { background: #fff; } .sheet-box { box-shadow: none; } }
+        .sheet-nav { text-align: center; margin: 18px 0 0 0; }
+        .sheet-nav a { margin: 0 8px; text-decoration: none; color: #222; font-weight: bold; }
+        .sheet-nav a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 <div class="sheet-box">
     <div class="sheet-header">Character sheet.</div>
     <div class="sheet-row">
-        <span class="sheet-label">Name:</span> {{ character['Name'] }}
-        <span style="float:right"><span class="sheet-label">Points cost:</span> {{ character['Points'] }}</span>
+        <form action="/set_name" method="post" style="display:inline;">
+            <span class="sheet-label">Name:</span>
+            <input type="text" name="name" value="{{ character['Name'] }}" style="width:120px;">
+            <button type="submit">Set</button>
+        </form>
+        <form action="/set_points" method="post" style="float:right;display:inline;">
+            <span class="sheet-label">Points cost:</span>
+            <input type="number" name="points" value="{{ character['Points'] }}" style="width:60px;">
+            <button type="submit">Set</button>
+        </form>
     </div>
     <div class="sheet-row">
         <table class="sheet-table">
@@ -72,9 +82,13 @@
     </div>
     <div class="sheet-section">
         <div class="sheet-section-title">Abilities:</div>
+    <button id="toggle-ability-desc-index" type="button" style="margin-bottom:8px;">Show Descriptions</button>
         <ul class="sheet-list">
         {% for ab in ability_objs %}
-            <li><b>{{ ab.name }}</b>{% if ab.cost is not none %} ({{ ab.cost }}){% endif %}: {{ ab.effect }}</li>
+            <li>
+                <b>{{ ab.name }}</b>{% if ab.cost is not none %} ({{ ab.cost }}){% endif %}
+                <span class="ability-effect" style="display:none;">: {{ ab.effect }}</span>
+            </li>
         {% else %}
             <li>-</li>
         {% endfor %}
@@ -91,22 +105,7 @@
                     {% else %}
                         <li>{{ eq }}</li>
                     {% endif %}
-                {% else %}
-                    <li>-</li>
                 {% endfor %}
-                </ul>
-            </div>
-            
-            <div class="sheet-section-title">Weapons:</div>
-            <div class="sheet-quarter-inner">
-                <ul class="sheet-list">
-                {% if character.get('Weapons') %}
-                    {% for weapon in character['Weapons'] %}
-                        <li>{{ weapon }}</li>
-                    {% endfor %}
-                {% else %}
-                    <li>-</li>
-                {% endif %}
                 </ul>
             </div>
         </div>
@@ -118,9 +117,24 @@
         </div>
     </div>
 </div>
-<div style="text-align:center;margin:20px;">
-    <button onclick="window.print()">Print or Save as PDF</button>
-    <a href="/">Back to Character</a>
+<div class="sheet-nav">
+    <a href="/traits">Add Traits</a>
+    <a href="/abilities">Add Abilities</a>
+    <a href="/arcana">View Arcana</a>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('toggle-ability-desc-index');
+    if (!btn) return;
+    var shown = false;
+    btn.addEventListener('click', function() {
+        shown = !shown;
+        document.querySelectorAll('.ability-effect').forEach(function(el) {
+            el.style.display = shown ? '' : 'none';
+        });
+        btn.textContent = shown ? 'Hide Descriptions' : 'Show Descriptions';
+    });
+});
+</script>
 </body>
 </html>

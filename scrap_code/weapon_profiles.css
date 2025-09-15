@@ -1,0 +1,137 @@
+/* 
+ * Weapon Profiles Styling - Scrap Code
+ * This code was used for displaying detailed weapon profiles on the character sheet
+ * with collapsible special rules sections
+ */
+
+/* Weapon Profiles Styling */
+.weapon-profiles {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.weapon-profile {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.weapon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 6px;
+}
+
+.weapon-name {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.weapon-stats {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    border: 1px solid #ccc;
+}
+
+.weapon-stats th {
+    background-color: #f2f2f2;
+    text-align: center;
+    padding: 6px 8px;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+
+.weapon-stats td {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.weapon-special-rules {
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.rules-label {
+    font-weight: bold;
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #ddd;
+}
+
+.collapsible-trigger {
+    transition: background-color 0.2s;
+}
+
+.collapsible-trigger:hover {
+    background-color: #dee2e6;
+}
+
+.expand-icon {
+    font-weight: bold;
+    color: #495057;
+    transition: transform 0.2s;
+    font-size: 1.2em;
+    margin-right: 5px;
+}
+
+.rules-content {
+    padding: 5px 10px;
+    background-color: #fff;
+    border-radius: 0 0 3px 3px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 1;
+}
+
+.rules-content.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
+    opacity: 0;
+    visibility: hidden;
+    margin: 0;
+}
+
+.rule {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.rule:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.rule-name {
+    font-weight: bold;
+    color: #495057;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.rule-description {
+    color: #6c757d;
+    padding-left: 10px;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
