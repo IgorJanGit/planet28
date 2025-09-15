@@ -14,6 +14,7 @@ import datetime
 from app.traits_api import list_traits, get_trait
 from app.abilities_api import list_abilities, get_ability
 from app.arcana_api import list_arcana
+from app.weapons_api import list_weapons, get_weapon_types, get_special_rules
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -225,8 +226,29 @@ async def calculate_points(request: Request):
             # Add speed cost (only applies in homebrew mode)
             points += speed_cost
             
+            # Calculate weapon costs
+            weapon_cost = 0
+            weapons_input = form_data.get('weapons', '')
+            if weapons_input:
+                # Split the weapons string into a list of weapon names
+                weapon_names = [w.strip() for w in weapons_input.split(',') if w.strip()]
+                
+                # Import the weapons API functions
+                from app.weapons_api import get_weapon
+                
+                # Look up each weapon and add its cost
+                for weapon_name in weapon_names:
+                    weapon = get_weapon(weapon_name)
+                    if weapon:
+                        weapon_cost += weapon.get('cost', 0)
+                    else:
+                        print(f"Warning: Weapon '{weapon_name}' not found in database")
+            
+            # Add weapon costs to total points
+            points += weapon_cost
+            
             # Debug output
-            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], hit_points={hit_points}, hit_points_cost={hit_points_cost}, speed={speed}, speed_cost={speed_cost}, total_points={points}")
+            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], hit_points={hit_points}, hit_points_cost={hit_points_cost}, speed={speed}, speed_cost={speed_cost}, weapons_cost={weapon_cost}, total_points={points}")
             
             return {"points": points, "success": True}
         except Exception as e:
@@ -421,6 +443,7 @@ def add_character(request: Request, char_name: str = Form(...)):
         'Traits': [],
         'Abilities': [],
         'Equipment': [],
+        'Weapons': [],
         'Notes': '',
         'Backstory': '',
         'Injuries': '',
@@ -726,17 +749,23 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     character['Speed'] = speed
     character['Hit-points'] = hit_points
     
+    # Process weapons
+    weapons = form.get('Weapons', '')
+    weapon_list = [w.strip() for w in weapons.split(',') if w.strip()]
+    
     # Debug
     print(f"Final trait_list before save: {trait_list}")
     print(f"Final ability_list before save: {ability_list}")
+    print(f"Final weapon_list before save: {weapon_list}")
     
     # Update collections using the processed lists (ensures removed items stay removed)
     character['Traits'] = trait_list
     character['Abilities'] = ability_list
     character['Equipment'] = equipment_list
+    character['Weapons'] = weapon_list
     
     # Debug
-    print(f"Character after update: Traits={character['Traits']}, Abilities={character['Abilities']}")
+    print(f"Character after update: Traits={character['Traits']}, Abilities={character['Abilities']}, Weapons={character['Weapons']}")
     
     # Save notes/background and new fields
     character['Notes'] = form.get('Notes', character.get('Notes', ''))
@@ -772,6 +801,99 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     else:
         # For normal form submissions, redirect as before
         return RedirectResponse(f"/warband/{warband}", status_code=303)
+
+# --- Weapon Routes ---
+@app.get("/weapons/{warband}/{character_name}", response_class=HTMLResponse)
+def weapons_page(request: Request, warband: str, character_name: str):
+    """Display the weapons page for selecting weapons to equip."""
+    from app.weapons_api import list_weapons, get_weapon_types, get_special_rules
+    
+    # Get weapons data
+    weapons = list_weapons()
+    weapon_types = get_weapon_types()
+    special_rules = get_special_rules()
+    
+    return templates.TemplateResponse(
+        "weapons.html",
+        {
+            "request": request,
+            "warband": warband,
+            "character_name": character_name,
+            "weapons": weapons,
+            "weapon_types": weapon_types,
+            "special_rules": special_rules
+        }
+    )
+
+@app.get("/weapon_rules/{warband}", response_class=HTMLResponse)
+def weapon_rules(request: Request, warband: str):
+    """Display the weapon special rules reference page."""
+    return templates.TemplateResponse(
+        "weapon_rules.html",
+        {
+            "request": request,
+            "warband": warband
+        }
+    )
+
+@app.get("/weapon_cost_table/{warband}", response_class=HTMLResponse)
+def weapon_cost_table(request: Request, warband: str):
+    """Display the weapon special rules cost table."""
+    return templates.TemplateResponse(
+        "weapon_cost_table.html",
+        {
+            "request": request,
+            "warband": warband
+        }
+    )
+
+@app.post("/add_weapon/{warband}/{character_name}")
+def add_weapon(request: Request, warband: str, character_name: str, weapon_name: str = Form(...)):
+    """Add a weapon to a character."""
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{character_name}.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Initialize weapons list if it doesn't exist
+    if 'Weapons' not in character:
+        character['Weapons'] = []
+    
+    # Add the weapon if it's not already in the list
+    if weapon_name not in character['Weapons']:
+        character['Weapons'].append(weapon_name)
+    
+    # Save the updated character
+    with open(char_file, "w") as f:
+        json.dump(character, f, indent=2)
+    
+    return RedirectResponse(f"/edit_character/{warband}/{character_name}", status_code=303)
+
+@app.post("/remove_weapon/{warband}/{character_name}")
+def remove_weapon(request: Request, warband: str, character_name: str, weapon_name: str = Form(...)):
+    """Remove a weapon from a character."""
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{character_name}.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Remove the weapon if it's in the list
+    if 'Weapons' in character and weapon_name in character['Weapons']:
+        character['Weapons'].remove(weapon_name)
+    
+    # Save the updated character
+    with open(char_file, "w") as f:
+        json.dump(character, f, indent=2)
+    
+    return RedirectResponse(f"/edit_character/{warband}/{character_name}", status_code=303)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

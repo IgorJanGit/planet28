@@ -96,6 +96,19 @@
                 {% endfor %}
                 </ul>
             </div>
+            
+            <div class="sheet-section-title">Weapons:</div>
+            <div class="sheet-quarter-inner">
+                <ul class="sheet-list">
+                {% if character.get('Weapons') %}
+                    {% for weapon in character['Weapons'] %}
+                        <li>{{ weapon }}</li>
+                    {% endfor %}
+                {% else %}
+                    <li>-</li>
+                {% endif %}
+                </ul>
+            </div>
         </div>
         <div class="sheet-half">
             <div class="sheet-section-title">Injuries:</div>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planet28 - Weapon Special Rules Cost Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .cost-table th, .cost-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .cost-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .cost-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .positive-cost {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .negative-cost {
+            color: #F44336;
+            font-weight: bold;
+        }
+        a.back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a.back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="/weapon_rules/{{ warband }}" class="back-link">← Back to Weapon Rules</a>
+    <h1>Weapon Special Rules Cost Table</h1>
+    
+    <table class="cost-table">
+        <thead>
+            <tr>
+                <th>Weapon Special Rule</th>
+                <th>Effect</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Armour piercing</td>
+                <td>Characters struck by this weapon may not make any armour rolls.</td>
+                <td class="positive-cost">+30</td>
+            </tr>
+            <tr>
+                <td>Cumulative</td>
+                <td>For every successive turn in which a character is struck by this weapon, the weapon does an additional +4 damage.</td>
+                <td class="positive-cost">+20</td>
+            </tr>
+            <tr>
+                <td>Explosive</td>
+                <td>Any character or vehicle within 5cm of a character hit by this weapon suffers 1D6 damage.</td>
+                <td class="positive-cost">+20</td>
+            </tr>
+            <tr>
+                <td>Heavy</td>
+                <td>Characters wielding this weapon suffer -1 to their agility.</td>
+                <td class="negative-cost">-10</td>
+            </tr>
+            <tr>
+                <td>Integral</td>
+                <td>This weapon cannot be removed during a game.</td>
+                <td class="negative-cost">-10</td>
+            </tr>
+            <tr>
+                <td>Indirect</td>
+                <td>When firing this weapon, first estimate the distance between the shooter and the target. On a straight line from the shooter to the target, place a marker at this estimated distance. Anything within 10cm of the area is hit by the weapon. This weapon does not need line of sight to select a target.</td>
+                <td class="positive-cost">+30</td>
+            </tr>
+            <tr>
+                <td>Poisonous</td>
+                <td>Any character hit by this weapon takes 1D4 damage at the start of every turn. This damage cannot be stopped with armour.</td>
+                <td class="positive-cost">+40</td>
+            </tr>
+            <tr>
+                <td>Psychic</td>
+                <td>The wielder of this weapon may choose to use their (P) score when making shoot/fight actions with it, instead of their (S) or (F) skill.</td>
+                <td class="positive-cost">+25</td>
+            </tr>
+            <tr>
+                <td>Reload</td>
+                <td>After each attack made with this weapon, the wielder must use an action to reload it. This action uses 1 piece of ammo from the wielder's equipment.</td>
+                <td class="negative-cost">-15</td>
+            </tr>
+            <tr>
+                <td>Volatile</td>
+                <td>If the user rolls a 10 when attempting a skill roll with this weapon then the weapon deals damage to the wielder rather than their target.</td>
+                <td class="negative-cost">-10</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 20px; padding: 15px; background-color: #f2f2f2; border-left: 4px solid #2196F3;">
+        <h3>About Weapon Special Rule Costs</h3>
+        <p>When creating custom weapons, you can add these special rules to adjust the weapon's capabilities. Each rule has an associated cost modifier:</p>
+        <ul>
+            <li>Positive cost (+) makes the weapon more expensive</li>
+            <li>Negative cost (-) makes the weapon less expensive</li>
+        </ul>
+        <p>The total cost of all special rules should be added to the base weapon cost.</p>
+    </div>
+</body>
+</html>

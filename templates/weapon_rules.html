@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planet28 - Weapon Special Rules</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .rule-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .rule {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .rule-name {
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .rule-description {
+            margin-top: 5px;
+        }
+        a.back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a.back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="/warband/{{ warband }}" class="back-link">← Back to Warband</a>
+    <h1>Weapon Special Rules Reference</h1>
+    
+    <div style="margin-bottom: 20px; text-align: right;">
+        <a href="/weapon_cost_table/{{ warband }}" style="display: inline-block; padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px;">View Cost Table</a>
+    </div>
+    <div class="rule-section">
+        <h2>Weapon Special Rules</h2>
+        
+        <div class="rule">
+            <div class="rule-name">Armour piercing</div>
+            <div class="rule-description">Characters struck by this weapon may not make any armour rolls. <span style="color:#4CAF50;">(+30 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Cumulative</div>
+            <div class="rule-description">For every successive turn in which a character is struck by this weapon, the weapon does an additional +4 damage. <span style="color:#4CAF50;">(+20 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Explosive</div>
+            <div class="rule-description">Any character or vehicle within 5cm of a character hit by this weapon suffers 1D6 damage. <span style="color:#4CAF50;">(+20 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Heavy</div>
+            <div class="rule-description">Characters wielding this weapon suffer -1 to their agility. <span style="color:#F44336;">(-10 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Integral</div>
+            <div class="rule-description">This weapon cannot be removed during a game. <span style="color:#F44336;">(-10 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Indirect</div>
+            <div class="rule-description">When firing this weapon, first estimate the distance between the shooter and the target. On a straight line from the shooter to the target, place a marker at this estimated distance. Anything within 10cm of the area is hit by the weapon. This weapon does not need line of sight to select a target. <span style="color:#4CAF50;">(+30 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Poisonous</div>
+            <div class="rule-description">Any character hit by this weapon takes 1D4 damage at the start of every turn. This damage cannot be stopped with armour. <span style="color:#4CAF50;">(+40 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Psychic</div>
+            <div class="rule-description">The wielder of this weapon may choose to use their (P) score when making shoot/fight actions with it, instead of their (S) or (F) skill. <span style="color:#4CAF50;">(+25 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Reload</div>
+            <div class="rule-description">After each attack made with this weapon, the wielder must use an action to reload it. This action uses 1 piece of ammo from the wielder's equipment. <span style="color:#F44336;">(-15 cost)</span></div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Volatile</div>
+            <div class="rule-description">If the user rolls a 10 when attempting a skill roll with this weapon then the weapon deals damage to the wielder rather than their target.</div>
+        </div>
+    
+    <div class="rule-section">
+        <h2>Ammunition Types</h2>
+        
+        <div class="rule">
+            <div class="rule-name">Ammo Types</div>
+            <div class="rule-description">
+                <ul>
+                    <li><strong>Ammo = rough</strong>: Basic ammunition that is easy to find.</li>
+                    <li><strong>Ammo = Basic</strong>: Standard ammunition.</li>
+                    <li><strong>Ammo = Special</strong>: Specialized ammunition that is harder to find.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="rule-section">
+        <h2>Weapon Categories</h2>
+        
+        <div class="rule">
+            <div class="rule-name">Type</div>
+            <div class="rule-description">Melee, Ranged, Complex, Energy, Ballistic, Psychic</div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Size</div>
+            <div class="rule-description">Onehanded, Twohanded</div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Damage</div>
+            <div class="rule-description">Expressed in dice notation (e.g., 2D6+4)</div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Range</div>
+            <div class="rule-description">For ranged weapons, listed in centimeters</div>
+        </div>
+        
+        <div class="rule">
+            <div class="rule-name">Cost</div>
+            <div class="rule-description">Credits required to purchase the weapon</div>
+        </div>
+    </div>
+    
+    <div class="rule-section">
+        <h2>Additional Information</h2>
+        <p>Characters can equip multiple weapons, but can only use one two-handed weapon at a time.</p>
+        <p>Two-handed weapons cannot be used with shields or other items that require a free hand.</p>
+    </div>
+</body>
+</html>

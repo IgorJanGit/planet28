@@ -1,0 +1,235 @@
+{
+  "weapons": [
+    {
+      "name": "Fist",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "1D4-1",
+      "special_rules": "",
+      "range": "",
+      "cost": 0
+    },
+    {
+      "name": "Club",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "1D4",
+      "special_rules": "",
+      "range": "",
+      "cost": 4
+    },
+    {
+      "name": "Heavy club",
+      "type": "Melee",
+      "size": "Twohanded",
+      "damage": "1D6",
+      "special_rules": "Heavy",
+      "range": "",
+      "cost": 6
+    },
+    {
+      "name": "Dagger",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "1D4+3",
+      "special_rules": "",
+      "range": "",
+      "cost": 5
+    },
+    {
+      "name": "Power sword",
+      "type": "Melee Complex",
+      "size": "Onehanded",
+      "damage": "2D6",
+      "special_rules": "",
+      "range": "",
+      "cost": 15
+    },
+    {
+      "name": "Great sword",
+      "type": "Melee",
+      "size": "Twohanded",
+      "damage": "2D6+6",
+      "special_rules": "",
+      "range": "",
+      "cost": 20
+    },
+    {
+      "name": "Power fist",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "1D10+5",
+      "special_rules": "Armour piercing, Integral",
+      "range": "",
+      "cost": 30
+    },
+    {
+      "name": "Electro maul",
+      "type": "Melee",
+      "size": "Twohanded",
+      "damage": "1D20",
+      "special_rules": "Heavy, Armour piercing",
+      "range": "",
+      "cost": 50
+    },
+    {
+      "name": "Psy-staff",
+      "type": "Melee Complex, Psychic",
+      "size": "Onehanded",
+      "damage": "2D8+2",
+      "special_rules": "Psychic",
+      "range": "",
+      "cost": 35
+    },
+    {
+      "name": "Flaming torch",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "4D4",
+      "special_rules": "Poisonous",
+      "range": "",
+      "cost": 15
+    },
+    {
+      "name": "Primitive pistol",
+      "type": "Ranged",
+      "size": "Onehanded",
+      "damage": "2D4",
+      "special_rules": "Reload, Ammo = rough",
+      "range": "6cm",
+      "cost": 15
+    },
+    {
+      "name": "Black powder rifle",
+      "type": "Ranged",
+      "size": "Twohanded",
+      "damage": "2D4",
+      "special_rules": "Reload, Ammo = rough",
+      "range": "12cm",
+      "cost": 25
+    },
+    {
+      "name": "Laser pistol",
+      "type": "Ranged Complex, Energy",
+      "size": "Onehanded",
+      "damage": "1D8",
+      "special_rules": "",
+      "range": "15cm",
+      "cost": 25
+    },
+    {
+      "name": "Laser rifle",
+      "type": "Ranged Complex, Energy",
+      "size": "Twohanded",
+      "damage": "2D8",
+      "special_rules": "",
+      "range": "40cm",
+      "cost": 60
+    },
+    {
+      "name": "Heavy slug pistol",
+      "type": "Ranged Ballistic",
+      "size": "Onehanded",
+      "damage": "3D6",
+      "special_rules": "Reload, Ammo = Basic",
+      "range": "12cm",
+      "cost": 40
+    },
+    {
+      "name": "Heavy slug rifle",
+      "type": "Ranged Ballistic",
+      "size": "Twohanded",
+      "damage": "3D6",
+      "special_rules": "Reload, Ammo = Basic",
+      "range": "30cm",
+      "cost": 50
+    },
+    {
+      "name": "Missile launcher",
+      "type": "Ranged Ballistic",
+      "size": "Twohanded",
+      "damage": "3D10+5",
+      "special_rules": "Armour piercing, Explosive, Reload, Ammo = Special",
+      "range": "40cm",
+      "cost": 80
+    },
+    {
+      "name": "Sniper rifle",
+      "type": "Ranged Ballistic",
+      "size": "Twohanded",
+      "damage": "2D10",
+      "special_rules": "",
+      "range": "60cm",
+      "cost": 80
+    },
+    {
+      "name": "Shotgun",
+      "type": "Ranged Ballistic",
+      "size": "Twohanded",
+      "damage": "3D8",
+      "special_rules": "",
+      "range": "20cm",
+      "cost": 50
+    },
+    {
+      "name": "Plasma rifle",
+      "type": "Ranged Complex, Energy",
+      "size": "Twohanded",
+      "damage": "1D12+5",
+      "special_rules": "Armour piercing, Volatile",
+      "range": "25cm",
+      "cost": 60
+    },
+    {
+      "name": "Indirect Grenade Launcher",
+      "type": "Ranged Ballistic",
+      "size": "Twohanded",
+      "damage": "2D8",
+      "special_rules": "Explosive, Indirect, Reload, Ammo = Special",
+      "range": "30cm",
+      "cost": 85
+    },
+    {
+      "name": "Acid Blade",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "1D6+2",
+      "special_rules": "Poisonous, Cumulative",
+      "range": "",
+      "cost": 65
+    },
+    {
+      "name": "Neural Whip",
+      "type": "Melee Complex, Psychic",
+      "size": "Onehanded",
+      "damage": "1D8",
+      "special_rules": "Psychic, Poisonous",
+      "range": "",
+      "cost": 75
+    },
+    {
+      "name": "Cyberarm Blade",
+      "type": "Melee",
+      "size": "Onehanded",
+      "damage": "1D10",
+      "special_rules": "Armour piercing, Integral",
+      "range": "",
+      "cost": 50
+    }
+  ],
+  "special_rules": {
+    "Armour piercing": "Characters struck by this weapon may not make any armour rolls. (+30 cost)",
+    "Cumulative": "For every successive turn in which a character is struck by this weapon, the weapon does an additional +4 damage. (+20 cost)",
+    "Explosive": "Any character or vehicle within 5cm of a character hit by this weapon suffers 1D6 damage. (+20 cost)",
+    "Heavy": "Characters wielding this weapon suffer -1 to their agility. (-10 cost)",
+    "Integral": "This weapon cannot be removed during a game. (-10 cost)",
+    "Indirect": "When firing this weapon, first estimate the distance between the shooter and the target. On a straight line from the shooter to the target, place a marker at this estimated distance. Anything within 10cm of the area is hit by the weapon. This weapon does not need line of sight to select a target. (+30 cost)",
+    "Poisonous": "Any character hit by this weapon takes 1D4 damage at the start of every turn. This damage cannot be stopped with armour. (+40 cost)",
+    "Psychic": "The wielder of this weapon may choose to use their (P) score when making shoot/fight actions with it, instead of their (S) or (F) skill. (+25 cost)",
+    "Reload": "After each attack made with this weapon, the wielder must use an action to reload it. This action uses 1 piece of ammo from the wielder's equipment. (-15 cost)",
+    "Volatile": "If the user rolls a 10 when attempting a skill roll with this weapon then the weapon deals damage to the wielder rather than their target.",
+    "Ammo = rough": "Uses basic ammunition that is easy to find.",
+    "Ammo = Basic": "Uses standard ammunition.",
+    "Ammo = Special": "Uses specialized ammunition that is harder to find."
+  }
+}

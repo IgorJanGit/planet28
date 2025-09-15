@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planet28 - Weapons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .special-rule {
+            cursor: pointer;
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        .rule-description {
+            display: none;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+            border-left: 3px solid #0066cc;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .filter-section select, .filter-section button {
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+        .add-weapon-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .add-weapon-btn:hover {
+            background-color: #45a049;
+        }
+        a.back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a.back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="/warband/{{ warband }}" class="back-link">← Back to Warband</a>
+    <h1>Weapons List</h1>
+    <p>Select weapons to equip your character with.</p>
+    <div style="margin-bottom: 15px;">
+        <a href="/weapon_rules/{{ warband }}" style="color:#2196F3;text-decoration:none;font-weight:bold;margin-right:15px;">View Weapon Special Rules</a>
+        <a href="/weapon_cost_table/{{ warband }}" style="color:#4CAF50;text-decoration:none;font-weight:bold;">View Special Rules Cost Table</a>
+    </div>
+    
+    <div class="filter-section">
+        <h3>Filter Weapons</h3>
+        <select id="typeFilter">
+            <option value="">All Types</option>
+            {% for type in weapon_types %}
+            <option value="{{ type }}">{{ type }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="filterWeapons()">Filter</button>
+        <button onclick="resetFilters()">Reset</button>
+    </div>
+    
+    <table id="weaponsTable">
+        <thead>
+            <tr>
+                <th>Weapon</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>Damage</th>
+                <th>Special Rules</th>
+                <th>Range</th>
+                <th>Cost</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for weapon in weapons %}
+            <tr class="weapon-row" data-type="{{ weapon.type }}">
+                <td>{{ weapon.name }}</td>
+                <td>{{ weapon.type }}</td>
+                <td>{{ weapon.size }}</td>
+                <td>{{ weapon.damage }}</td>
+                <td>
+                    {% if weapon.special_rules %}
+                        {% for rule in weapon.special_rules.split(',') %}
+                            {% set rule_clean = rule.strip() %}
+                            {% if rule_clean %}
+                                <span class="special-rule" onclick="toggleRuleDescription('{{ rule_clean }}')">{{ rule_clean }}</span>{% if not loop.last %}, {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% for rule in weapon.special_rules.split(',') %}
+                            {% set rule_clean = rule.strip() %}
+                            {% if rule_clean %}
+                                <div id="rule-{{ rule_clean|replace(' ', '-') }}" class="rule-description">
+                                    <strong>{{ rule_clean }}:</strong> {{ special_rules.get(rule_clean, "No description available.") }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ weapon.range if weapon.range else "-" }}</td>
+                <td>{{ weapon.cost }} credits</td>
+                <td>
+                    <form method="POST" action="/add_weapon/{{ warband }}/{{ character_name }}">
+                        <input type="hidden" name="weapon_name" value="{{ weapon.name }}">
+                        <button type="submit" class="add-weapon-btn">Add</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <script>
+        function toggleRuleDescription(rule) {
+            const ruleId = 'rule-' + rule.replace(/ /g, '-');
+            const ruleElement = document.getElementById(ruleId);
+            if (ruleElement) {
+                if (ruleElement.style.display === 'block') {
+                    ruleElement.style.display = 'none';
+                } else {
+                    ruleElement.style.display = 'block';
+                }
+            }
+        }
+        
+        function filterWeapons() {
+            const typeFilter = document.getElementById('typeFilter').value.trim();
+            const rows = document.querySelectorAll('#weaponsTable tbody tr');
+            
+            rows.forEach(row => {
+                const type = row.getAttribute('data-type');
+                let show = true;
+                
+                if (typeFilter && !type.includes(typeFilter)) {
+                    show = false;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        function resetFilters() {
+            document.getElementById('typeFilter').value = '';
+            const rows = document.querySelectorAll('#weaponsTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+        }
+    </script>
+</body>
+</html>
