@@ -724,6 +724,26 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     except (ValueError, TypeError):
         hit_points = 20  # Default to 20 if invalid
     
+    # Calculate weapon costs
+    weapon_cost = 0
+    weapons = form.get('Weapons', '')
+    weapon_list = [w.strip() for w in weapons.split(',') if w.strip()]
+    
+    # Import weapons API functions
+    from app.weapons_api import get_weapon
+    
+    # Look up each weapon and add its cost
+    for weapon_name in weapon_list:
+        weapon = get_weapon(weapon_name)
+        if weapon:
+            weapon_cost += weapon.get('cost', 0)
+        else:
+            print(f"Warning: Weapon '{weapon_name}' not found in database")
+    
+    # Add weapon costs to total points
+    points += weapon_cost
+    print(f"Weapon costs: {weapon_cost}")
+    
     # Handle Speed
     try:
         # Get speed from form
@@ -756,7 +776,7 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     # Debug
     print(f"Final trait_list before save: {trait_list}")
     print(f"Final ability_list before save: {ability_list}")
-    print(f"Final weapon_list before save: {weapon_list}")
+    print(f"Final weapon_list before save: {weapon_list}, total weapon cost: {weapon_cost}")
     
     # Update collections using the processed lists (ensures removed items stay removed)
     character['Traits'] = trait_list
