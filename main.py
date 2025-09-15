@@ -319,8 +319,20 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     traits = form.get('Traits', '')
     abilities = form.get('Abilities', '')
     equipment = form.get('Equipment', '')
+    
+    # Debug
+    print(f"Received Traits: '{traits}'")
+    print(f"Received Abilities: '{abilities}'")
+    
+    # Process lists with consistent delimiter handling
     trait_list = [t.strip() for t in traits.split(',') if t.strip()]
     ability_list = [a.strip() for a in abilities.split(',') if a.strip()]
+    equipment_list = [e.strip() for e in equipment.split(',') if e.strip()]
+    
+    # Debug
+    print(f"Processed trait_list: {trait_list}")
+    print(f"Processed ability_list: {ability_list}")
+    
     # Remove duplicates
     trait_list = list(dict.fromkeys(trait_list))
     ability_list = list(dict.fromkeys(ability_list))
@@ -337,19 +349,49 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     character['Skills']['Awareness'] = int(form.get('Awareness', character['Skills']['Awareness']))
     character['Speed'] = int(form.get('Speed', character['Speed']))
     character['Hit-points'] = int(form.get('Hitpoints', character['Hit-points']))
+    
+    # Debug
+    print(f"Final trait_list before save: {trait_list}")
+    print(f"Final ability_list before save: {ability_list}")
+    
+    # Update collections using the processed lists (ensures removed items stay removed)
     character['Traits'] = trait_list
     character['Abilities'] = ability_list
-    character['Equipment'] = [e.strip() for e in equipment.split(',') if e.strip()]
+    character['Equipment'] = equipment_list
+    
+    # Debug
+    print(f"Character after update: Traits={character['Traits']}, Abilities={character['Abilities']}")
+    
     # Save notes/background
     character['Notes'] = form.get('Notes', character.get('Notes', ''))
     # Save back to file (rename if name changed)
     new_name = character['Name']
     new_char_file = os.path.join(wb_path, f"{new_name}.json")
+    
+    # Make sure traits and abilities are properly reset when empty
+    if not trait_list:
+        character['Traits'] = []
+    if not ability_list:
+        character['Abilities'] = []
+    
     with open(new_char_file, "w") as f:
         json.dump(character, f)
+    
+    print(f"Saved character to {new_char_file}")
+    
     if new_char_file != char_file and os.path.exists(char_file):
         os.remove(char_file)
-    return RedirectResponse(f"/warband/{warband}", status_code=303)
+        print(f"Removed old character file {char_file}")
+        
+    # Check if this is an AJAX request for auto-save
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    if is_ajax:
+        # For AJAX requests, return a success message instead of redirecting
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"status": "success", "message": "Character saved"})
+    else:
+        # For normal form submissions, redirect as before
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
