@@ -15,21 +15,28 @@
     <style>
         body { font-family: Arial, sans-serif; background: #f4f4f4; }
         .sheet-box {
-            border: 2px solid #222;
-            width: 520px;
+            border: 3px solid #000;
+            width: 580px;
             margin: 36px auto 24px auto;
             padding: 0;
             background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 18px #0002;
             overflow: hidden;
         }
         .sheet-row, .sheet-header, .sheet-section {
-            border-bottom: 1.5px solid #bbb;
+            border-bottom: 1px solid #000;
             padding: 10px 18px;
         }
-        .sheet-header { text-align: center; font-weight: bold; font-size: 1.18em; background: #f8f8f8; border-bottom: 2px solid #222; }
-        .sheet-table { width: 100%; border-collapse: collapse; }
+        .sheet-header { 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 1.2em; 
+            background: #fff; 
+            border-bottom: 1px solid #000; 
+        }
+        .sheet-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
         .sheet-table th, .sheet-table td {
             border: 1px solid #000;
             text-align: center;
@@ -37,24 +44,37 @@
         }
         .sheet-section-title { font-weight: bold; margin-top: 4px; margin-bottom: 6px; }
         .sheet-flex { display: flex; gap: 0; }
-        .sheet-half { width: 50%; border-right: 1.5px solid #bbb; box-sizing: border-box; background: #fafbfc; }
+        .sheet-half { 
+            width: 50%; 
+            border-right: 1px solid #000; 
+            box-sizing: border-box; 
+            background: #fff;
+            padding: 10px;
+        }
         .sheet-half:last-child { border-right: none; }
-        .sheet-quarter-inner { padding: 10px 12px; min-height: 40px; }
         .sheet-list { min-height: 40px; margin: 0; padding-left: 16px; }
         .sheet-list li { text-align: left; }
         .sheet-label { font-weight: bold; }
         .sheet-row:last-child, .sheet-section:last-child { border-bottom: none; }
-        .sheet-nav { text-align: center; margin: 22px 0 0 0; }
-        .btn { padding: 8px 18px; border-radius: 4px; border: none; background: #222; color: #fff; font-weight: bold; text-decoration: none; margin-right: 8px; }
-        .btn:hover { background: #444; }
+        .btn { 
+            padding: 8px 18px; 
+            border-radius: 0; 
+            border: 1px solid #000; 
+            background: #fff; 
+            color: #000; 
+            font-weight: bold; 
+            text-decoration: none; 
+            margin-right: 8px; 
+        }
+        .btn:hover { background: #eee; }
         input[type="text"], input[type="number"], select {
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
-            border-radius: 4px;
-            border: 1px solid #bbb;
+            border-radius: 0;
+            border: 1px solid #000;
             padding: 5px 7px;
-            background: #f9f9f9;
+            background: #fff;
         }
         /* Style for trait/ability dropdown options */
         select option {
@@ -62,6 +82,9 @@
             white-space: normal;
             min-height: 30px;
             line-height: 1.3;
+        }
+        textarea {
+            border-radius: 0;
         }
     </style>
 </head>
@@ -72,11 +95,15 @@
 
 <form action="/edit_character/{{ warband }}/{{ character['Name'] }}" method="post" autocomplete="off">
     <div class="sheet-box">
-        <div class="sheet-header">Edit Character: <input type="text" name="Name" value="{{ character['Name'] }}" style="width:120px; font-weight:bold; font-size:1em; border:1px solid #888; padding:2px 4px;"> </div>
+        <div class="sheet-header">Character Sheet</div>
         
         <div class="sheet-row">
-            <span class="sheet-label">Points cost:</span>
-            <input type="number" name="Points" value="{{ character['Points'] }}" style="width:60px;">
+            <table class="sheet-table" style="border-collapse: collapse;">
+                <tr>
+                    <td style="width:70%; text-align:left; padding:8px;"><b>Name:</b> <input type="text" name="Name" value="{{ character['Name'] }}" style="width:calc(100% - 60px); font-weight:bold; font-size:1em; border:1px solid #888; padding:2px 4px;"></td>
+                    <td style="width:30%; text-align:left; padding:8px;"><b>Points cost:</b> <input type="number" name="Points" value="{{ character['Points'] }}" style="width:60px;"></td>
+                </tr>
+            </table>
         </div>
 
         <div class="sheet-row">
@@ -104,7 +131,7 @@
         
         <div class="sheet-section">
             <div class="sheet-section-title">Traits:</div>
-            <div id="trait-list-box">
+            <div id="trait-list-box" style="min-height: 80px; border: 1px solid #000; padding: 8px;">
                 <input type="hidden" name="Traits" id="traits-hidden-input" value="{{ character['Traits']|join(',') }}">
                 <ul id="trait-list" class="sheet-list" style="margin-bottom:6px;">
                     {% for trait in character['Traits'] %}
@@ -136,7 +163,7 @@
         
         <div class="sheet-section">
             <div class="sheet-section-title">Abilities:</div>
-            <div id="ability-list-box">
+            <div id="ability-list-box" style="min-height: 80px; border: 1px solid #000; padding: 8px;">
                 <input type="hidden" name="Abilities" id="abilities-hidden-input" value="{{ character['Abilities']|join(',') }}">
                 <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
                 {% for ab in character['Abilities'] %}
@@ -166,19 +193,40 @@
             </div>
         </div>
         
+        <div class="sheet-row">
+            <div class="sheet-flex">
+                <div class="sheet-half">
+                    <div class="sheet-section-title">Equipment:</div>
+                    <div style="min-height: 150px; border: 1px solid #000; padding: 8px;">
+                        <textarea name="Equipment" rows="7" style="width:100%;height:134px;resize:none;border:none;background:transparent;padding:0;">{{ character['Equipment']|join(', ') if character['Equipment'] else '' }}</textarea>
+                    </div>
+                </div>
+                <div class="sheet-half">
+                    <div class="sheet-section-title">Injuries:</div>
+                    <div style="min-height: 100px; border: 1px solid #000; padding: 8px;">
+                        <textarea name="Injuries" rows="4" style="width:100%;height:84px;resize:none;border:none;background:transparent;padding:0;">{{ character['Injuries'] if character['Injuries'] is defined else '' }}</textarea>
+                    </div>
+                    <div class="sheet-section-title" style="margin-top:10px;">Campaign points:</div>
+                    <div style="min-height: 40px; border: 1px solid #000; padding: 8px;">
+                        <input type="text" name="CampaignPoints" value="{{ character['CampaignPoints'] if character['CampaignPoints'] is defined else '' }}" style="width:100%;height:24px;border:none;background:transparent;padding:0;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div style="margin-top:16px;">
             <div class="sheet-section-title">Notes:</div>
-            <textarea name="Notes" rows="3" style="width:100%;min-height:60px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Notes'] if character['Notes'] is defined else '' }}</textarea>
+            <textarea name="Notes" rows="2" style="width:100%;min-height:40px;resize:vertical;border:1px solid #000;padding:6px 8px;box-sizing:border-box;">{{ character['Notes'] if character['Notes'] is defined else '' }}</textarea>
         </div>
 
         <div style="margin-top:16px;">
             <div class="sheet-section-title">Backstory:</div>
-            <textarea name="Backstory" rows="5" style="width:100%;min-height:100px;resize:vertical;border-radius:4px;border:1px solid #bbb;padding:6px 8px;box-sizing:border-box;">{{ character['Backstory'] if character['Backstory'] is defined else '' }}</textarea>
+            <textarea name="Backstory" rows="3" style="width:100%;min-height:60px;resize:vertical;border:1px solid #000;padding:6px 8px;box-sizing:border-box;">{{ character['Backstory'] if character['Backstory'] is defined else '' }}</textarea>
         </div>
 
-        <div style="margin-top:16px;text-align:right;">
-            <span id="save-status" style="margin-right:10px;font-size:0.9em;color:#666;"></span>
-            <button type="submit" style="padding:6px 12px;font-weight:bold;">Save Character</button>
+        <div style="margin-top:16px;text-align:center;">
+            <span id="save-status" style="margin-right:10px;font-size:0.9em;color:#666;display:inline-block;width:150px;text-align:right;"></span>
+            <button type="submit" style="padding:8px 24px;font-weight:bold;background:#222;color:white;border:none;border-radius:4px;">Save Character</button>
         </div>
     </div>
 

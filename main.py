@@ -362,9 +362,12 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     # Debug
     print(f"Character after update: Traits={character['Traits']}, Abilities={character['Abilities']}")
     
-    # Save notes/background
+    # Save notes/background and new fields
     character['Notes'] = form.get('Notes', character.get('Notes', ''))
     character['Backstory'] = form.get('Backstory', character.get('Backstory', ''))
+    character['Injuries'] = form.get('Injuries', character.get('Injuries', ''))
+    character['CampaignPoints'] = form.get('CampaignPoints', character.get('CampaignPoints', ''))
+    
     # Save back to file (rename if name changed)
     new_name = character['Name']
     new_char_file = os.path.join(wb_path, f"{new_name}.json")
