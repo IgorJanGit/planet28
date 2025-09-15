@@ -6,6 +6,7 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 import json
@@ -18,6 +19,9 @@ from app.weapons_api import list_weapons, get_weapon_types, get_special_rules
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Global config 
 def get_global_config():
@@ -568,6 +572,10 @@ def edit_character_get(request: Request, warband: str, char_name: str):
     weapon_details = {}
     for weapon_name in character.get('Weapons', []):
         weapon_details[weapon_name] = get_weapon(weapon_name)
+    
+    # Get special rules data
+    from app.special_rules_api import get_all_special_rules
+    special_rules_data = get_all_special_rules()
                 
     # Pass both base and modified skills to template
     return templates.TemplateResponse(
@@ -581,7 +589,8 @@ def edit_character_get(request: Request, warband: str, char_name: str):
             "warband_points": warband_points, 
             "mod_skills": mod_skills,
             "homebrew_enabled": homebrew_enabled,
-            "weapon_details": weapon_details
+            "weapon_details": weapon_details,
+            "special_rules_data": special_rules_data
         }
     )
 

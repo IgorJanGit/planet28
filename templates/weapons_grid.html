@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planet28 - Weapons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3f51b5;
+            padding-bottom: 10px;
+        }
+        .back-link {
+            color: #3f51b5;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .back-link:before {
+            content: "←";
+            margin-right: 5px;
+        }
+        .filters-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .filter-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            color: #555;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .filter-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-button.apply {
+            background-color: #3f51b5;
+            color: white;
+        }
+        .filter-button.reset {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .filter-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Weapon Grid Layout */
+        .weapons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .weapon-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .weapon-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .weapon-header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .weapon-body {
+            padding: 15px;
+            flex-grow: 1;
+        }
+        
+        .weapon-property {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        
+        .property-label {
+            font-weight: bold;
+            width: 100px;
+            color: #555;
+        }
+        
+        .property-value {
+            flex: 1;
+        }
+        
+        .special-rules {
+            margin-top: 10px;
+        }
+        
+        .special-rule {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #444;
+            border: 1px solid #ddd;
+        }
+        
+        .special-rule:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .rule-description {
+            display: none;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 0.9em;
+            border-left: 3px solid #3f51b5;
+        }
+        
+        .weapon-footer {
+            padding: 12px 15px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .weapon-cost {
+            font-weight: bold;
+            color: #e91e63;
+        }
+        
+        .add-weapon-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .add-weapon-btn:hover {
+            background-color: #45a049;
+        }
+        
+        /* Toggle for grid/table view */
+        .view-toggle {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .view-toggle button {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        
+        .view-toggle button.active {
+            background-color: #3f51b5;
+            color: white;
+            border-color: #3f51b5;
+        }
+        
+        .view-toggle button:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+        
+        .view-toggle button:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/weapon_profiles.css">
+</head>
+<body>
+    <div class="page-header">
+        <h1>Select a Weapon</h1>
+        <a href="/edit_character/{{ warband }}/{{ character_name }}" class="back-link">Back to Character Sheet</a>
+    </div>
+
+    <div class="filters-container">
+        <div class="filter-title">Filter Weapons</div>
+        <div class="filter-controls">
+            <div class="filter-group">
+                <label for="typeFilter">Type:</label>
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    {% for type in weapon_types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button onclick="filterWeapons()" class="filter-button apply">Apply Filters</button>
+                <button onclick="resetFilters()" class="filter-button reset">Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="view-toggle">
+        <button id="gridViewBtn" class="active" onclick="switchView('grid')">Grid View</button>
+        <button id="tableViewBtn" onclick="switchView('table')">Table View</button>
+    </div>
+    
+    <div id="gridView" class="weapons-grid">
+        {% for weapon in weapons %}
+        <div class="weapon-card" data-type="{{ weapon.type }}">
+            <div class="weapon-header">{{ weapon.name }}</div>
+            <div class="weapon-body">
+                <div class="weapon-property">
+                    <div class="property-label">Type:</div>
+                    <div class="property-value">{{ weapon.type }}</div>
+                </div>
+                <div class="weapon-property">
+                    <div class="property-label">Size:</div>
+                    <div class="property-value">{{ weapon.size }}</div>
+                </div>
+                <div class="weapon-property">
+                    <div class="property-label">Damage:</div>
+                    <div class="property-value">{{ weapon.damage }}</div>
+                </div>
+                <div class="weapon-property">
+                    <div class="property-label">Range:</div>
+                    <div class="property-value">{{ weapon.range if weapon.range else "-" }}</div>
+                </div>
+                
+                {% if weapon.special_rules %}
+                <div class="weapon-property">
+                    <div class="property-label">Special:</div>
+                    <div class="property-value special-rules">
+                        {% for rule in weapon.special_rules.split(',') %}
+                            {% set rule_clean = rule.strip() %}
+                            {% if rule_clean %}
+                                <span class="special-rule" onclick="toggleRuleDescription('{{ rule_clean }}', '{{ weapon.name|replace("'", "\\'") }}')">{{ rule_clean }}</span>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for rule in weapon.special_rules.split(',') %}
+                            {% set rule_clean = rule.strip() %}
+                            {% if rule_clean %}
+                                <div id="rule-{{ weapon.name|replace(' ', '-') }}-{{ rule_clean|replace(' ', '-') }}" class="rule-description">
+                                    <strong>{{ rule_clean }}:</strong> {{ special_rules.get(rule_clean, "No description available.") }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="weapon-footer">
+                <div class="weapon-cost">{{ weapon.cost }} credits</div>
+                <form method="POST" action="/add_weapon/{{ warband }}/{{ character_name }}">
+                    <input type="hidden" name="weapon_name" value="{{ weapon.name }}">
+                    <button type="submit" class="add-weapon-btn">Add Weapon</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div id="tableView" style="display: none;">
+        <table id="weaponsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" onclick="sortTable(0)">Name <span class="sort-icon">↓</span></th>
+                    <th class="sortable" onclick="sortTable(1)">Type <span class="sort-icon">↓</span></th>
+                    <th class="sortable" onclick="sortTable(2)">Size <span class="sort-icon">↓</span></th>
+                    <th class="sortable" onclick="sortTable(3)">Damage <span class="sort-icon">↓</span></th>
+                    <th>Special Rules</th>
+                    <th class="sortable" onclick="sortTable(5)">Range <span class="sort-icon">↓</span></th>
+                    <th class="sortable" onclick="sortTable(6)">Cost <span class="sort-icon">↓</span></th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for weapon in weapons %}
+                <tr data-type="{{ weapon.type }}">
+                    <td>{{ weapon.name }}</td>
+                    <td>{{ weapon.type }}</td>
+                    <td>{{ weapon.size }}</td>
+                    <td>{{ weapon.damage }}</td>
+                    <td>
+                        {% if weapon.special_rules %}
+                            {% for rule in weapon.special_rules.split(',') %}
+                                {% set rule_clean = rule.strip() %}
+                                {% if rule_clean %}
+                                    <span class="special-rule" onclick="toggleRuleDescription('{{ rule_clean }}', 'table-{{ weapon.name|replace("'", "\\'") }}')">{{ rule_clean }}</span>{% if not loop.last %}, {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            {% for rule in weapon.special_rules.split(',') %}
+                                {% set rule_clean = rule.strip() %}
+                                {% if rule_clean %}
+                                    <div id="rule-table-{{ weapon.name|replace(' ', '-') }}-{{ rule_clean|replace(' ', '-') }}" class="rule-description">
+                                        <strong>{{ rule_clean }}:</strong> {{ special_rules.get(rule_clean, "No description available.") }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ weapon.range if weapon.range else "-" }}</td>
+                    <td>{{ weapon.cost }} credits</td>
+                    <td>
+                        <form method="POST" action="/add_weapon/{{ warband }}/{{ character_name }}">
+                            <input type="hidden" name="weapon_name" value="{{ weapon.name }}">
+                            <button type="submit" class="add-weapon-btn">Add</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        function toggleRuleDescription(rule, weaponName) {
+            const ruleId = 'rule-' + weaponName.replace(/ /g, '-') + '-' + rule.replace(/ /g, '-');
+            const ruleElement = document.getElementById(ruleId);
+            if (ruleElement) {
+                if (ruleElement.style.display === 'block') {
+                    ruleElement.style.display = 'none';
+                } else {
+                    ruleElement.style.display = 'block';
+                }
+            }
+        }
+        
+        function filterWeapons() {
+            const typeFilter = document.getElementById('typeFilter').value.trim();
+            const gridItems = document.querySelectorAll('.weapon-card');
+            const tableRows = document.querySelectorAll('#weaponsTable tbody tr');
+            
+            // Filter grid items
+            gridItems.forEach(item => {
+                const type = item.getAttribute('data-type');
+                if (typeFilter === '' || type === typeFilter) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Filter table rows
+            tableRows.forEach(row => {
+                const type = row.getAttribute('data-type');
+                if (typeFilter === '' || type === typeFilter) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function resetFilters() {
+            document.getElementById('typeFilter').value = '';
+            filterWeapons();
+        }
+        
+        function switchView(viewType) {
+            const gridView = document.getElementById('gridView');
+            const tableView = document.getElementById('tableView');
+            const gridBtn = document.getElementById('gridViewBtn');
+            const tableBtn = document.getElementById('tableViewBtn');
+            
+            if (viewType === 'grid') {
+                gridView.style.display = '';
+                tableView.style.display = 'none';
+                gridBtn.classList.add('active');
+                tableBtn.classList.remove('active');
+            } else {
+                gridView.style.display = 'none';
+                tableView.style.display = '';
+                tableBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+            }
+        }
+        
+        function sortTable(n) {
+            let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("weaponsTable");
+            switching = true;
+            dir = "asc";
+            
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+            
+            // Update sort icons
+            const icons = document.querySelectorAll(".sort-icon");
+            icons.forEach((icon, index) => {
+                if (index === n) {
+                    icon.textContent = dir === "asc" ? "↑" : "↓";
+                } else {
+                    icon.textContent = "↓";
+                }
+            });
+        }
+        
+        // Initialize
+        window.onload = function() {
+            filterWeapons();
+        };
+    </script>
+</body>
+</html>
