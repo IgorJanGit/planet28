@@ -562,6 +562,12 @@ def edit_character_get(request: Request, warband: str, char_name: str):
         warband_points = int(warband_points)
     except (TypeError, ValueError):
         warband_points = 500
+        
+    # Get weapon details for each weapon the character has
+    from app.weapons_api import get_weapon
+    weapon_details = {}
+    for weapon_name in character.get('Weapons', []):
+        weapon_details[weapon_name] = get_weapon(weapon_name)
                 
     # Pass both base and modified skills to template
     return templates.TemplateResponse(
@@ -574,7 +580,8 @@ def edit_character_get(request: Request, warband: str, char_name: str):
             "abilities": abilities, 
             "warband_points": warband_points, 
             "mod_skills": mod_skills,
-            "homebrew_enabled": homebrew_enabled
+            "homebrew_enabled": homebrew_enabled,
+            "weapon_details": weapon_details
         }
     )
 
@@ -868,9 +875,14 @@ def add_weapon(request: Request, warband: str, character_name: str, weapon_name:
     if 'Weapons' not in character:
         character['Weapons'] = []
     
-    # Add the weapon if it's not already in the list
-    if weapon_name not in character['Weapons']:
-        character['Weapons'].append(weapon_name)
+    print(f"Current weapons: {character['Weapons']}")
+    print(f"Attempting to add weapon: {weapon_name}")
+    
+    # Add the weapon (allow duplicates)
+    print(f"Adding weapon {weapon_name}")
+    character['Weapons'].append(weapon_name)
+    
+    print(f"Updated weapons: {character['Weapons']}")
     
     # Save the updated character
     with open(char_file, "w") as f:
@@ -899,6 +911,15 @@ def remove_weapon(request: Request, warband: str, character_name: str, weapon_na
         json.dump(character, f, indent=2)
     
     return RedirectResponse(f"/edit_character/{warband}/{character_name}", status_code=303)
+
+@app.get("/api/special_rule/{rule_name}")
+async def get_special_rule_api(rule_name: str):
+    """API endpoint to get the description of a special rule."""
+    print(f"API endpoint called for rule: {rule_name}")
+    from app.special_rules_api import get_special_rule_description
+    description = get_special_rule_description(rule_name)
+    print(f"Description retrieved: {description}")
+    return {"rule": rule_name, "description": description}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

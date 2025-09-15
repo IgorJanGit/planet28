@@ -105,9 +105,204 @@
         }
         .weapon-item {
             display: flex;
+            flex-direction: column;
+            padding: 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            position: relative;
+            transition: all 0.25s ease;
+            overflow: hidden;
+        }
+        .weapon-name {
+            font-weight: 600;
+            color: white;
+            font-size: 1.05em;
+            padding: 10px 35px 10px 12px;
+            background-color: #3f51b5;
+            border-bottom: 1px solid #ddd;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+        }
+        .weapon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .weapon-details {
+            padding: 12px;
+            font-size: 0.9em;
+            background-color: #fdfdfd;
+        }
+        .weapon-property {
+            display: flex;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .property-label {
+            font-weight: bold;
+            width: 70px;
+            color: #555;
+        }
+        .property-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .weapon-special {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+            padding: 8px;
+            border-top: 1px dashed #eee;
+            background-color: #f9f9f9;
+            border-radius: 0 0 4px 4px;
+        }
+        .special-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+            color: #3f51b5;
+        }
+        
+        /* Special rule tags */
+        .special-rule-tag {
+            cursor: pointer;
+            color: #0066cc;
+            text-decoration: underline dotted;
+            display: inline-block;
+        }
+        
+        .special-rule-tag:hover {
+            color: #004499;
+            text-decoration: underline;
+        }
+        
+        /* Modal for special rules */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
             justify-content: space-between;
-            padding: 3px 0;
             align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .close-modal {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        .remove-weapon-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            z-index: 2;
+        }
+        .remove-weapon-btn:hover {
+            background-color: rgba(255,71,87,0.9);
+            transform: scale(1.1);
+        }
+        .weapon-empty {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+        .weapon-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .add-weapon-btn {
+            background: #4CAF50;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            text-align: center;
+            font-size: 0.9em;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .add-weapon-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+        
+        /* Weapon type colors */
+        .weapon-melee .weapon-name {
+            background-color: #3f51b5;
+            background-image: linear-gradient(135deg, #3f51b5, #5c6bc0);
+        }
+        
+        .weapon-ranged .weapon-name {
+            background-color: #009688;
+            background-image: linear-gradient(135deg, #009688, #26a69a);
+        }
+        
+        .weapon-psychic .weapon-name {
+            background-color: #9c27b0;
+            background-image: linear-gradient(135deg, #9c27b0, #ba68c8);
+        }
+        
+        .weapon-complex .weapon-name {
+            background-color: #ff9800;
+            background-image: linear-gradient(135deg, #ff9800, #ffb74d);
         }
         .sheet-flex { display: flex; gap: 0; }
         .sheet-half { 
@@ -289,25 +484,78 @@
                     <div class="sheet-section-title">Equipment & Weapons:</div>
                     <div style="min-height: 150px; border: 1px solid #000; padding: 8px;">
                         <!-- Weapons section -->
-                        <div style="margin-bottom: 10px;">
-                            <div style="font-weight: bold; margin-bottom: 4px;" class="subsection-title">Weapons:</div>
-                            <div id="weapon-list-box" style="min-height: 50px; margin-bottom: 8px;">
-                                <input type="hidden" name="Weapons" id="weapons-hidden-input" value="{{ character['Weapons']|join(',') if character['Weapons'] else '' }}">
-                                <ul id="weapon-list" class="sheet-list" style="margin-bottom:6px;">
-                                    {% if character.get('Weapons') %}
-                                        {% for weapon in character['Weapons'] %}
-                                        <li class="weapon-item">
-                                            <div>{{ weapon }}</div>
-                                            <button type="button" class="remove-weapon-btn" data-weapon="{{ weapon }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
-                                        </li>
-                                        {% endfor %}
-                                    {% else %}
-                                        <li>-</li>
-                                    {% endif %}
-                                </ul>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;" class="subsection-title">
+                                <span>Weapons:</span>
+                                <a href="/weapons/{{ warband }}/{{ character['Name'] }}" class="add-weapon-btn">
+                                    <span style="margin-right:5px;">+</span> Add Weapon
+                                </a>
                             </div>
-                            <div style="margin-bottom:10px;">
-                                <a href="/weapons/{{ warband }}/{{ character['Name'] }}" class="btn" style="background:#4CAF50;color:white;display:inline-block;padding:4px 10px;text-align:center;font-size:90%;">Add Weapon</a>
+                            <div id="weapon-list-box" style="min-height: 50px; margin-bottom: 10px;">
+                                <input type="hidden" name="Weapons" id="weapons-hidden-input" value="{{ character['Weapons']|join(',') if character['Weapons'] else '' }}">
+                                
+                                {% if character.get('Weapons') %}
+                                    <div id="weapon-grid" class="weapon-grid">
+                                        {% for weapon in character['Weapons'] %}
+                                            {% set details = weapon_details.get(weapon, {}) %}
+                                            {% set type_class = "" %}
+                                            {% if details %}
+                                                {% if "Melee" in details.type %}
+                                                    {% set type_class = "weapon-melee" %}
+                                                {% elif "Ranged" in details.type %}
+                                                    {% set type_class = "weapon-ranged" %}
+                                                {% elif "Psychic" in details.type %}
+                                                    {% set type_class = "weapon-psychic" %}
+                                                {% elif "Complex" in details.type %}
+                                                    {% set type_class = "weapon-complex" %}
+                                                {% else %}
+                                                    {% set type_class = "weapon-melee" %}
+                                                {% endif %}
+                                            {% endif %}
+                                            <div class="weapon-item {{ type_class }}">
+                                                <div class="weapon-name">{{ weapon }} {% if details and details.cost is defined %}({{ details.cost }}{% if details.cost != 0 %}c{% endif %}){% endif %}</div>
+                                                <button type="button" class="remove-weapon-btn" data-weapon="{{ weapon }}">&times;</button>
+                                                
+                                                {% if details %}
+                                                    <div class="weapon-details">
+                                                        <div class="weapon-property">
+                                                            <div class="property-label">Type:</div>
+                                                            <div class="property-value">{{ details.type }}</div>
+                                                        </div>
+                                                        <div class="weapon-property">
+                                                            <div class="property-label">Size:</div>
+                                                            <div class="property-value">{{ details.size }}</div>
+                                                        </div>
+                                                        <div class="weapon-property">
+                                                            <div class="property-label">Damage:</div>
+                                                            <div class="property-value">{{ details.damage }}</div>
+                                                        </div>
+                                                        {% if details.range %}
+                                                        <div class="weapon-property">
+                                                            <div class="property-label">Range:</div>
+                                                            <div class="property-value">{{ details.range }}</div>
+                                                        </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if details.special_rules %}
+                                                        <div class="weapon-special">
+                                                            <div class="special-label">Special Rules:</div>
+                                                            <div class="special-value">
+                                                                {% set rules = details.special_rules.split(',') %}
+                                                                {% for rule in rules %}
+                                                                    <a href="#" class="special-rule-link" onclick="showSpecialRule('{{ rule.strip() }}'); return false;">{{ rule.strip() }}</a>{% if not loop.last %}, {% endif %}
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="weapon-empty">No weapons equipped</div>
+                                {% endif %}
                             </div>
                         </div>
                         
@@ -1112,31 +1360,31 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.classList.contains('remove-weapon-btn')) {
             const weapon = e.target.getAttribute('data-weapon');
             if (weapon) {
-                const weaponList = document.getElementById('weapon-list');
+                const weaponGrid = document.getElementById('weapon-grid');
                 const weaponInput = document.getElementById('weapons-hidden-input');
                 
-                // Remove the weapon from the list
+                // Remove the weapon from the grid
                 if (e.target.parentNode) {
                     e.target.parentNode.remove();
                 }
                 
-                // If the list is now empty, add a dash
-                if (weaponList.children.length === 0) {
-                    const dash = document.createElement('li');
-                    dash.textContent = '-';
-                    weaponList.appendChild(dash);
+                // If the grid is now empty, show the empty message
+                if (!weaponGrid || weaponGrid.children.length === 0) {
+                    const weaponListBox = document.getElementById('weapon-list-box');
+                    if (weaponGrid) weaponGrid.remove();
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'weapon-empty';
+                    emptyMessage.textContent = 'No weapons equipped';
+                    weaponListBox.appendChild(emptyMessage);
                 }
                 
                 // Update the hidden input with the remaining weapons
-                const weapons = Array.from(weaponList.querySelectorAll('li'))
-                    .map(li => {
-                        // Skip the dash
-                        if (li.textContent.trim() === '-') return null;
-                        // Get the weapon name (first div in the li)
-                        const nameDiv = li.querySelector('div');
+                const weapons = weaponGrid ? Array.from(weaponGrid.querySelectorAll('.weapon-item'))
+                    .map(item => {
+                        const nameDiv = item.querySelector('.weapon-name');
                         return nameDiv ? nameDiv.textContent.trim() : null;
                     })
-                    .filter(name => name !== null);
+                    .filter(name => name !== null) : [];
                 
                 weaponInput.value = weapons.join(',');
                 
@@ -1149,6 +1397,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+</script>
+
+<!-- Simple special rule modal -->
+<div id="specialRuleModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: #fff; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 id="specialRuleTitle" style="font-size: 1.2em; font-weight: bold; margin: 0;">Special Rule</h2>
+            <span onclick="document.getElementById('specialRuleModal').style.display='none'" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        </div>
+        <div id="specialRuleDescription"></div>
+    </div>
+</div>
+
+<script>
+// Simple function to show special rule
+function showSpecialRule(ruleName) {
+    console.log("showSpecialRule called for: " + ruleName);
+    
+    // Set the title
+    document.getElementById('specialRuleTitle').innerText = ruleName;
+    
+    // Make the API call
+    fetch('/api/special_rule/' + encodeURIComponent(ruleName))
+        .then(function(response) {
+            console.log("API response received");
+            return response.json();
+        })
+        .then(function(data) {
+            console.log("Data received:", data);
+            document.getElementById('specialRuleDescription').innerText = data.description;
+            document.getElementById('specialRuleModal').style.display = 'block';
+        })
+        .catch(function(error) {
+            console.error("Error fetching rule:", error);
+            document.getElementById('specialRuleDescription').innerText = "Error loading description.";
+            document.getElementById('specialRuleModal').style.display = 'block';
+        });
+}
 </script>
 </form>
 </body>

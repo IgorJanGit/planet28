@@ -1,0 +1,16 @@
+{
+  "special_rules": {
+    "Heavy": "The weapon is cumbersome and requires both hands. You cannot use a shield or another weapon simultaneously.",
+    "Armour piercing": "This weapon can penetrate armor more effectively, reducing the target's armor value when calculating damage.",
+    "Integral": "This weapon cannot be disarmed or dropped.",
+    "Psychic": "This weapon is powered by psychic energy and can affect targets regardless of physical barriers.",
+    "Poisonous": "On a successful hit, the target must make a Constitution save or suffer additional effects.",
+    "Reload": "The weapon must be reloaded after firing, requiring an action to reload before firing again.",
+    "Ammo = rough": "This weapon uses common, easily found ammunition.",
+    "Ammo = Basic": "This weapon uses standard ammunition that can be purchased in most settlements.",
+    "Ammo = Special": "This weapon uses rare or specialized ammunition that is harder to find and more expensive.",
+    "Explosive": "This weapon causes damage in an area rather than to a single target.",
+    "Volatile": "This weapon has a chance of malfunctioning. On a natural 1, roll again: on a second 1, the weapon explodes.",
+    "Indirect": "This weapon can be fired at targets that are not in direct line of sight."
+  }
+}
