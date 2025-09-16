@@ -19,14 +19,13 @@
     {# Removed 'Go to Character Sheet' button #}
     <h1>{{ warband }} Warband</h1>
     <div style="display:flex; justify-content:center; align-items:center; margin-bottom:16px;">
-        <form action="/toggle_homebrew/{{ warband }}" method="post" style="display:flex; align-items:center; gap:10px;">
+        <form action="/toggle_homebrew/{{ warband }}" method="post" style="display:flex; align-items:center; gap:10px;" id="homebrewForm">
             <label for="homebrew_toggle" style="font-weight:bold;">Homebrew Rules:</label>
             <div class="toggle-switch">
                 <input type="checkbox" id="homebrew_toggle" name="homebrew_enabled" value="1" {% if homebrew_enabled %}checked{% endif %}>
                 <label for="homebrew_toggle"></label>
             </div>
             <span id="homebrew_status" style="margin-left:5px; font-size:0.9em;">{% if homebrew_enabled %}Enabled{% else %}Disabled{% endif %}</span>
-            <button type="submit" style="margin-left:10px; background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:0.9em;">Update</button>
         </form>
     </div>
     
@@ -52,6 +51,7 @@
             background-color: #ccc;
             transition: .4s;
             border-radius: 34px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .toggle-switch label:before {
             position: absolute;
@@ -63,12 +63,20 @@
             background-color: white;
             transition: .4s;
             border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
         .toggle-switch input:checked + label {
             background-color: #2196F3;
         }
         .toggle-switch input:checked + label:before {
             transform: translateX(32px);
+        }
+        /* Add hover effect to make it clearer it's interactive */
+        .toggle-switch:hover label {
+            background-color: #bbb;
+        }
+        .toggle-switch input:checked:hover + label {
+            background-color: #0d8bec;
         }
     </style>
     
@@ -77,6 +85,17 @@
             const isChecked = this.checked;
             console.log("Homebrew toggle changed:", isChecked);
             document.getElementById('homebrew_status').textContent = isChecked ? 'Enabled' : 'Disabled';
+            
+            // Show loading indicator
+            const statusSpan = document.getElementById('homebrew_status');
+            const originalText = statusSpan.textContent;
+            statusSpan.textContent = "Updating...";
+            statusSpan.style.color = "#2196F3";
+            
+            // Submit the form
+            setTimeout(function() {
+                document.getElementById('homebrewForm').submit();
+            }, 300);
         });
     </script>
     
