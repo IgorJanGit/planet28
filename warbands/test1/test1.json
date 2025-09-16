@@ -1,6 +1,6 @@
 {
   "Name": "test1",
-  "Points": 165,
+  "Points": 48,
   "Skills": {
     "Agility": 1,
     "Fighting": 1,
@@ -10,8 +10,13 @@
   },
   "Speed": 10,
   "Hit-points": 20,
-  "Traits": [],
-  "Abilities": [],
+  "Traits": [
+    "Ammo smith",
+    "Big"
+  ],
+  "Abilities": [
+    "Throw"
+  ],
   "Equipment": [],
   "Notes": "",
   "Backstory": "",

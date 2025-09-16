@@ -581,11 +581,12 @@
         <div class="sheet-section">
             <div class="sheet-section-title">Traits:</div>
             <div id="trait-list-box" style="min-height: 80px; border: 1px solid #000; padding: 8px;">
-                <input type="hidden" name="Traits" id="traits-hidden-input" value="{{ character['Traits']|join(',') }}">
+                <!-- We'll use a div for visible traits instead of hidden input -->
+                <div id="trait-inputs-container"></div>
                 <ul id="trait-list" class="sheet-list" style="margin-bottom:6px;">
                     {% for trait in character['Traits'] %}
                     <li>
-                        {{ trait }}
+                        <div>{{ trait }}</div>
                         <button type="button" class="show-effect-btn" data-trait="{{ trait }}" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>
                         <button type="button" class="remove-trait-btn" data-trait="{{ trait }}" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
                         <div class="trait-effect-inline" data-trait="{{ trait }}" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;"></div>
@@ -608,12 +609,14 @@
                 <button type="button" id="add-trait-btn">Add</button>
                 <div id="trait-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;width:100%;"></div>
             </div>
+            <button type="button" id="save-traits-btn" style="margin-top:8px;padding:4px 10px;background-color:#4CAF50;color:white;border:none;border-radius:4px;cursor:pointer;">Save Traits</button>
         </div>
         
         <div class="sheet-section">
             <div class="sheet-section-title">Abilities:</div>
             <div id="ability-list-box" style="min-height: 80px; border: 1px solid #000; padding: 8px;">
-                <input type="hidden" name="Abilities" id="abilities-hidden-input" value="{{ character['Abilities']|join(',') }}">
+                <!-- We'll use a div for visible abilities instead of hidden input -->
+                <div id="ability-inputs-container"></div>
                 <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
                 {% for ab in character['Abilities'] %}
                     <li>
@@ -640,6 +643,11 @@
                 <button type="button" id="add-ability-btn">Add</button>
                 <div id="ability-effect-preview" style="display:none;margin:6px 0 0 0;padding:6px 10px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;width:100%;"></div>
             </div>
+            <button type="button" id="save-abilities-btn" style="margin-top:8px;padding:4px 10px;background-color:#4CAF50;color:white;border:none;border-radius:4px;cursor:pointer;">Save Abilities</button>
+        </div>
+        
+        <div class="sheet-row">
+            <button type="submit" style="margin:15px 0;padding:8px 24px;font-weight:bold;background:#4CAF50;color:white;border:none;border-radius:4px;width:100%;">Save Traits & Abilities</button>
         </div>
         
         <div class="sheet-row">
@@ -897,6 +905,90 @@ const ABILITY_EFFECTS = {{ ability_effects_dict|tojson|safe }};
 const TRAIT_COSTS = JSON.parse(document.getElementById('trait-costs-json').textContent);
 const ABILITY_COSTS = JSON.parse(document.getElementById('ability-costs-json').textContent);
 
+// Debug effects dictionaries
+console.log("TRAIT_EFFECTS dictionary:", TRAIT_EFFECTS);
+console.log("ABILITY_EFFECTS dictionary:", ABILITY_EFFECTS);
+
+// Set homebrew enabled flag from server
+const isHomebrewEnabled = {{ 'true' if homebrew_enabled else 'false' }};
+console.log("Homebrew enabled:", isHomebrewEnabled);
+
+// Global variables to track if effect tables are shown
+var traitEffectsShown = false;
+var abilityEffectsShown = false;
+
+// Auto-save variables
+var saveTimeout = null;
+const SAVE_DELAY = 1500; // 1.5 seconds after last change
+
+// Auto-save function
+function scheduleSave() {
+    if (saveTimeout) {
+        clearTimeout(saveTimeout);
+    }
+    
+    const saveStatusElement = document.getElementById('save-status');
+    if (saveStatusElement) {
+        saveStatusElement.textContent = "Changes detected...";
+        saveStatusElement.style.color = "#666";
+    }
+    
+    saveTimeout = setTimeout(function() {
+        saveCharacter();
+    }, SAVE_DELAY);
+}
+
+// Function to save character data via AJAX
+function saveCharacter() {
+    const saveStatusElement = document.getElementById('save-status');
+    if (saveStatusElement) {
+        saveStatusElement.textContent = "Saving...";
+    }
+    
+    const form = document.querySelector('form');
+    const formData = new FormData(form);
+    
+    // Debug logging for form data
+    console.log("---- FORM DATA DEBUG ----");
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+    console.log("All Traits inputs in form:", document.querySelectorAll('input[name="Traits"]').length);
+    console.log("All Abilities inputs in form:", document.querySelectorAll('input[name="Abilities"]').length);
+    console.log("------------------------");
+    
+    // Create and send the AJAX request
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (saveStatusElement) {
+                saveStatusElement.textContent = "Saved";
+                saveStatusElement.style.color = "#28a745";
+                setTimeout(() => {
+                    saveStatusElement.textContent = "";
+                }, 2000);
+            }
+        } else {
+            console.error("Save failed:", data.error);
+            if (saveStatusElement) {
+                saveStatusElement.textContent = "Save failed";
+                saveStatusElement.style.color = "#dc3545";
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Error saving character:", error);
+        if (saveStatusElement) {
+            saveStatusElement.textContent = "Save failed";
+            saveStatusElement.style.color = "#dc3545";
+        }
+    });
+}
+
 // Ensure points are always calculated correctly when page loads or fields change
 window.onload = function() {
     console.log("Window load event triggered");
@@ -920,15 +1012,17 @@ window.onload = function() {
 function recalculatePoints() {
     try {
         console.log("recalculatePoints called");
-        
-        // Get homebrew status
-        let isHomebrewEnabled = {{ 'true' if homebrew_enabled else 'false' }};
+        console.log("Homebrew enabled:", isHomebrewEnabled);
         
         // Start with base cost of 10
         let totalPoints = 10;
         
         // Add trait costs
-        let traits = (document.getElementById('traits-hidden-input').value || '').split(',').filter(t => t.trim());
+        let traitsElement = document.getElementById('traits-hidden-input');
+        let traits = [];
+        if (traitsElement && traitsElement.value) {
+            traits = traitsElement.value.split(',').filter(t => t.trim());
+        }
         for (let trait of traits) {
             if (TRAIT_COSTS[trait]) {
                 totalPoints += TRAIT_COSTS[trait];
@@ -936,7 +1030,11 @@ function recalculatePoints() {
         }
         
         // Add ability costs
-        let abilities = (document.getElementById('abilities-hidden-input').value || '').split(',').filter(a => a.trim());
+        let abilitiesElement = document.getElementById('abilities-hidden-input');
+        let abilities = [];
+        if (abilitiesElement && abilitiesElement.value) {
+            abilities = abilitiesElement.value.split(',').filter(a => a.trim());
+        }
         for (let ability of abilities) {
             if (ABILITY_COSTS[ability]) {
                 totalPoints += ABILITY_COSTS[ability];
@@ -948,6 +1046,10 @@ function recalculatePoints() {
         const skillInputs = document.querySelectorAll('.skill-input');
         
         skillInputs.forEach(input => {
+            if (!input) {
+                console.error("Null input found in skill inputs");
+                return;
+            }
             // Get skill value, default to 1 if invalid
             let value = parseInt(input.value) || 1;
             if (value < 1) value = 1;
@@ -990,6 +1092,11 @@ function recalculatePoints() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("=== DOM CONTENT LOADED ===");
+    
+    // Simple test alert
+    alert("TRAITS & ABILITIES: JavaScript is now working! The add trait button should work now.");
+    
     const traitSelect = document.getElementById('trait_select');
     const abilitySelect = document.getElementById('ability_select');
     const traitList = document.getElementById('trait-list');
@@ -1002,22 +1109,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const abilityEffectsDiv = document.getElementById('all-ability-effects');
     const saveStatusElement = document.getElementById('save-status');
     
+    // Initialize traits and abilities input containers
+    console.log("Initializing traits and abilities input containers");
+    updateTraitsInput();
+    updateAbilitiesInput();
+    
+    // Initialize trait and ability effect descriptions
+    console.log("Initializing trait and ability effect descriptions");
+    document.querySelectorAll('.trait-effect-inline').forEach(div => {
+        const trait = div.getAttribute('data-trait');
+        if (trait && !div.textContent.trim()) {
+            div.textContent = TRAIT_EFFECTS[trait] || 'No effect description available.';
+            console.log(`Initialized effect for trait ${trait}`);
+        }
+    });
+    
+    document.querySelectorAll('.ability-effect-inline').forEach(div => {
+        const ability = div.getAttribute('data-ability');
+        if (ability && !div.textContent.trim()) {
+            div.textContent = ABILITY_EFFECTS[ability] || 'No effect description available.';
+            console.log(`Initialized effect for ability ${ability}`);
+        }
+    });
+    
     // Calculate initial points including skill costs
     console.log("Calling updatePoints from DOMContentLoaded event");
     setTimeout(updatePoints, 100); // Delay slightly to ensure all fields are loaded
     
     console.log("DOM loaded, elements initialized:");
+    console.log("traitSelect:", traitSelect ? "found" : "not found");
+    console.log("abilitySelect:", abilitySelect ? "found" : "not found");
+    console.log("traitList:", traitList ? "found" : "not found");
     console.log("abilityList:", abilityList ? "found" : "not found");
     console.log("abilityEffectsDiv:", abilityEffectsDiv ? "found" : "not found");
     console.log("toggleAbilityBtn:", toggleAbilityBtn ? "found" : "not found");
+    console.log("addTraitBtn:", document.getElementById('add-trait-btn') ? "found" : "not found");
+    console.log("addAbilityBtn:", document.getElementById('add-ability-btn') ? "found" : "not found");
     
-    // Auto-save variables
-    let saveTimeout = null;
-    const SAVE_DELAY = 1500; // 1.5 seconds after last change
-    
-    // Variables to track if effect tables are shown
-    let traitEffectsShown = false;
-    let abilityEffectsShown = false;
+    // Initialize the trait and ability effects displays
+    updateTraitEffectsDisplay();
+    updateAbilityEffectsDisplay();
     
     // Trait effects toggle
     if (toggleTraitBtn && traitEffectsDiv) {
@@ -1055,7 +1186,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateTraitEffectsDisplay() {
         console.log("Updating trait effects display");
         // Get all current traits from the list
-        const traitNames = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
+        const traitElements = document.querySelectorAll('#trait-list .remove-trait-btn');
+        const traitNames = Array.from(traitElements).map(btn => btn.getAttribute('data-trait'));
         console.log("Current traits:", traitNames);
         
         // Build HTML for display
@@ -1064,11 +1196,8 @@ document.addEventListener('DOMContentLoaded', function() {
             html = '<div>No traits added yet.</div>';
         } else {
             traitNames.forEach(trait => {
-                if (TRAIT_EFFECTS[trait]) {
-                    html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${TRAIT_EFFECTS[trait]}</div>`;
-                } else {
-                    html += `<div style="margin-bottom:6px;"><b>${trait}</b>: No effect description available.</div>`;
-                }
+                const effectText = TRAIT_EFFECTS[trait] || 'No effect description available.';
+                html += `<div style="margin-bottom:6px;"><b>${trait}</b>: ${effectText}</div>`;
             });
         }
         
@@ -1080,7 +1209,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateAbilityEffectsDisplay() {
         console.log("Updating ability effects display");
         // Get all current abilities from the list
-        const abilityNames = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).map(btn => btn.getAttribute('data-ability'));
+        const abilityElements = document.querySelectorAll('#ability-list .remove-ability-btn');
+        const abilityNames = Array.from(abilityElements).map(btn => btn.getAttribute('data-ability'));
         console.log("Current abilities:", abilityNames);
         
         // Build HTML for display
@@ -1089,30 +1219,13 @@ document.addEventListener('DOMContentLoaded', function() {
             html = '<div>No abilities added yet.</div>';
         } else {
             abilityNames.forEach(ability => {
-                if (ABILITY_EFFECTS[ability]) {
-                    html += `<div style="margin-bottom:6px;"><b>${ability}</b>: ${ABILITY_EFFECTS[ability]}</div>`;
-                } else {
-                    html += `<div style="margin-bottom:6px;"><b>${ability}</b>: No effect description available.</div>`;
-                }
+                const effectText = ABILITY_EFFECTS[ability] || 'No effect description available.';
+                html += `<div style="margin-bottom:6px;"><b>${ability}</b>: ${effectText}</div>`;
             });
         }
         
         // Update the content
         abilityEffectsDiv.innerHTML = html;
-    }
-    
-    // Auto-save function
-    function scheduleSave() {
-        if (saveTimeout) {
-            clearTimeout(saveTimeout);
-        }
-        
-        saveStatusElement.textContent = "Changes detected...";
-        saveStatusElement.style.color = "#666";
-        
-        saveTimeout = setTimeout(function() {
-            saveCharacter();
-        }, SAVE_DELAY);
     }
     
     // Function to save character data via AJAX
@@ -1123,8 +1236,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(form);
         
         // Debug logging for form data
-        console.log("Saving traits:", formData.get('Traits'));
-        console.log("Saving abilities:", formData.get('Abilities'));
+        console.log("---- FORM DATA DEBUG ----");
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        console.log("All Traits inputs in form:", document.querySelectorAll('input[name="Traits"]').length);
+        console.log("All Abilities inputs in form:", document.querySelectorAll('input[name="Abilities"]').length);
+        console.log("------------------------");
         
         // Create and send the AJAX request
         fetch(form.action, {
@@ -1169,12 +1287,39 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateTraitsInput() {
         const traits = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).map(btn => btn.getAttribute('data-trait'));
         
-        // Ensure we're setting an empty string if there are no traits
-        traitInput.value = traits.length > 0 ? traits.join(',') : '';
-        console.log("Updated traits input value:", traitInput.value);
+        // Debug trace the traits
+        console.log("updateTraitsInput called. Traits found:", traits);
+        
+        // Clear the existing inputs
+        const container = document.getElementById('trait-inputs-container');
+        container.innerHTML = '';
+        
+        // Add a separate input for each trait
+        traits.forEach(trait => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'Traits';
+            input.value = trait;
+            container.appendChild(input);
+            
+            // Initialize inline effect descriptions if they exist
+            const effectDiv = document.querySelector(`.trait-effect-inline[data-trait="${trait}"]`);
+            if (effectDiv && !effectDiv.textContent.trim()) {
+                effectDiv.textContent = TRAIT_EFFECTS[trait] || 'No effect description available.';
+            }
+        });
+        
+        // If no traits, add an empty input to ensure the field exists
+        if (traits.length === 0) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'Traits';
+            input.value = '';
+            container.appendChild(input);
+        }
         
         // Update trait effects display if it's visible
-        if (traitEffectsShown) {
+        if (typeof traitEffectsShown !== 'undefined' && traitEffectsShown) {
             updateTraitEffectsDisplay();
         }
         
@@ -1197,29 +1342,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else if (e.target.classList.contains('show-effect-btn')) {
                 const trait = e.target.getAttribute('data-trait');
+                console.log(`Show effect button clicked for trait: ${trait}`);
+                console.log(`Effect text from dictionary: ${TRAIT_EFFECTS[trait]}`);
+                
                 const effectDiv = e.target.parentNode.querySelector(`.trait-effect-inline[data-trait="${trait}"]`);
+                console.log(`Effect div found:`, effectDiv);
+                
                 if (effectDiv) {
                     if (effectDiv.style.display === 'none') {
+                        console.log(`Showing effect div for ${trait}`);
                         effectDiv.style.display = 'block';
-                        effectDiv.textContent = TRAIT_EFFECTS[trait] || 'No effect description available.';
+                        
+                        // Always set the text content to ensure it's displayed
+                        const effectText = TRAIT_EFFECTS[trait] || 'No effect description available.';
+                        effectDiv.textContent = effectText;
+                        console.log(`Set effect text to: ${effectText}`);
                     } else {
+                        console.log(`Hiding effect div for ${trait}`);
                         effectDiv.style.display = 'none';
                     }
+                } else {
+                    console.error(`Effect div not found for trait ${trait}`);
                 }
             }
         });
     }
     
     // Add trait button
+    console.log("Looking for add-trait-btn...");
     var addTraitBtn = document.getElementById('add-trait-btn');
+    console.log("Add trait button element:", addTraitBtn);
+    
     if (addTraitBtn) {
-        addTraitBtn.addEventListener('click', function() {
+        console.log("Adding click event listener to add trait button");
+        addTraitBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent any default form submission
+            console.log("Add trait button clicked!");
+            
             var select = document.getElementById('trait_select');
+            console.log("Trait select element:", select);
+            
+            if (!select) {
+                console.error("Trait select element not found!");
+                return;
+            }
+            
             var trait = select.value;
-            if (!trait) return;
+            console.log("Selected trait:", trait);
+            
+            if (!trait) {
+                console.log("No trait selected, returning");
+                alert("Please select a trait first");
+                return;
+            }
+            
             // Prevent duplicates
             var exists = Array.from(document.querySelectorAll('#trait-list .remove-trait-btn')).some(btn => btn.getAttribute('data-trait') === trait);
-            if (exists) return;
+            if (exists) {
+                console.log("Trait already exists, returning");
+                alert("This trait is already added");
+                return;
+            }
+            
+            console.log("Adding trait:", trait);
             // Remove dash if present
             var traitList = document.getElementById('trait-list');
             if (traitList.children.length === 1 && traitList.children[0].textContent === '-') {
@@ -1229,12 +1414,16 @@ document.addEventListener('DOMContentLoaded', function() {
             li.innerHTML = '<div>' + trait + '</div>' + 
                 '<button type="button" class="show-effect-btn" data-trait="' + trait + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
                 '<button type="button" class="remove-trait-btn" data-trait="' + trait + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
-                '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + TRAIT_EFFECTS[trait] + '</div>';
+                '<div class="trait-effect-inline" data-trait="' + trait + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + (TRAIT_EFFECTS[trait] || 'No effect description available.') + '</div>';
             traitList.appendChild(li);
             updateTraitsInput();
             
+            // Schedule autosave after adding a trait
+            console.log("Calling scheduleSave after adding trait");
+            scheduleSave();
+            
             // If showing all effects, update the display
-            if (traitEffectsShown) {
+            if (typeof traitEffectsShown !== 'undefined' && traitEffectsShown) {
                 updateTraitEffectsDisplay();
             }
             
@@ -1247,12 +1436,39 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateAbilitiesInput() {
         const abilities = Array.from(document.querySelectorAll('#ability-list .remove-ability-btn')).map(btn => btn.getAttribute('data-ability'));
         
-        // Ensure we're setting an empty string if there are no abilities
-        abilityInput.value = abilities.length > 0 ? abilities.join(',') : '';
-        console.log("Updated abilities input value:", abilityInput.value);
+        // Debug trace the abilities
+        console.log("updateAbilitiesInput called. Abilities found:", abilities);
+        
+        // Clear the existing inputs
+        const container = document.getElementById('ability-inputs-container');
+        container.innerHTML = '';
+        
+        // Add a separate input for each ability
+        abilities.forEach(ability => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'Abilities';
+            input.value = ability;
+            container.appendChild(input);
+            
+            // Initialize inline effect descriptions if they exist
+            const effectDiv = document.querySelector(`.ability-effect-inline[data-ability="${ability}"]`);
+            if (effectDiv && !effectDiv.textContent.trim()) {
+                effectDiv.textContent = ABILITY_EFFECTS[ability] || 'No effect description available.';
+            }
+        });
+        
+        // If no abilities, add an empty input to ensure the field exists
+        if (abilities.length === 0) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'Abilities';
+            input.value = '';
+            container.appendChild(input);
+        }
         
         // Update ability effects display if it's visible
-        if (abilityEffectsShown) {
+        if (typeof abilityEffectsShown !== 'undefined' && abilityEffectsShown) {
             updateAbilityEffectsDisplay();
         }
         
@@ -1277,14 +1493,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else if (e.target.classList.contains('show-ability-effect-btn')) {
                 const ability = e.target.getAttribute('data-ability');
+                console.log(`Show effect button clicked for ability: ${ability}`);
+                console.log(`Effect text from dictionary: ${ABILITY_EFFECTS[ability]}`);
+                
                 const effectDiv = e.target.parentNode.querySelector(`.ability-effect-inline[data-ability="${ability}"]`);
+                console.log(`Ability effect div found:`, effectDiv);
+                
                 if (effectDiv) {
                     if (effectDiv.style.display === 'none') {
+                        console.log(`Showing effect div for ${ability}`);
                         effectDiv.style.display = 'block';
-                        effectDiv.textContent = ABILITY_EFFECTS[ability] || 'No effect description available.';
+                        
+                        // Always set the text content to ensure it's displayed
+                        const effectText = ABILITY_EFFECTS[ability] || 'No effect description available.';
+                        effectDiv.textContent = effectText;
+                        console.log(`Set ability effect text to: ${effectText}`);
                     } else {
+                        console.log(`Hiding effect div for ${ability}`);
                         effectDiv.style.display = 'none';
                     }
+                } else {
+                    console.error(`Effect div not found for ability ${ability}`);
                 }
             }
         });
@@ -1309,12 +1538,16 @@ document.addEventListener('DOMContentLoaded', function() {
             li.innerHTML = '<div>' + ability + '</div>' + 
                 '<button type="button" class="show-ability-effect-btn" data-ability="' + ability + '" style="margin-left:6px;color:#06c;background:none;border:none;font-weight:bold;cursor:pointer;">&#9432;</button>' +
                 '<button type="button" class="remove-ability-btn" data-ability="' + ability + '" style="color:#a00;background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>' +
-                '<div class="ability-effect-inline" data-ability="' + ability + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + ABILITY_EFFECTS[ability] + '</div>';
+                '<div class="ability-effect-inline" data-ability="' + ability + '" style="display:none;margin:4px 0 0 0;padding:4px 8px;background:#f8f8f8;border-radius:6px;border:1px solid #ddd;font-size:0.97em;color:#333;">' + (ABILITY_EFFECTS[ability] || 'No effect description available.') + '</div>';
             abilityList.appendChild(li);
             updateAbilitiesInput();
             
+            // Schedule autosave after adding an ability
+            console.log("Calling scheduleSave after adding ability");
+            scheduleSave();
+            
             // If showing all effects, update the display
-            if (abilityEffectsShown) {
+            if (typeof abilityEffectsShown !== 'undefined' && abilityEffectsShown) {
                 updateAbilityEffectsDisplay();
             }
             
@@ -1325,6 +1558,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize points calculation
     updatePoints();
+    
+    // Add event listeners for save buttons
+    document.getElementById('save-traits-btn').addEventListener('click', function() {
+        console.log("Save traits button clicked");
+        
+        console.log("---- TRAITS DEBUG ----");
+        const traitInputs = document.querySelectorAll('input[name="Traits"]');
+        console.log("Number of trait inputs:", traitInputs.length);
+        traitInputs.forEach((input, i) => {
+            console.log(`Trait input ${i}:`, input.value);
+        });
+        console.log("-------------------");
+        
+        document.querySelector('form').submit();
+    });
+    
+    document.getElementById('save-abilities-btn').addEventListener('click', function() {
+        console.log("Save abilities button clicked");
+        
+        console.log("---- ABILITIES DEBUG ----");
+        const abilityInputs = document.querySelectorAll('input[name="Abilities"]');
+        console.log("Number of ability inputs:", abilityInputs.length);
+        abilityInputs.forEach((input, i) => {
+            console.log(`Ability input ${i}:`, input.value);
+        });
+        console.log("-------------------");
+        
+        document.querySelector('form').submit();
+    });
 });
 
 // Show effect preview for selected trait
@@ -1368,16 +1630,17 @@ window.onerror = function(message, source, lineno, colno, error) {
 function updatePoints() {
     try {
     console.log("updatePoints() called");
-    // Check if homebrew is enabled
-    let isHomebrewEnabled = {{ 'true' if homebrew_enabled else 'false' }};
     console.log("Homebrew enabled:", isHomebrewEnabled);
     
     // Base cost is 10 regardless of homebrew setting
     let basePoints = 10;
     
     // Add trait costs
-    let traitInput = document.getElementById('traits-hidden-input').value;
-    let traits = traitInput.split(',').map(x => x.trim()).filter(x => x);
+    let traitsElement = document.getElementById('traits-hidden-input');
+    let traits = [];
+    if (traitsElement && traitsElement.value) {
+        traits = traitsElement.value.split(',').map(x => x.trim()).filter(x => x);
+    }
     traits.forEach(t => { 
         if (TRAIT_COSTS[t] !== undefined) {
             // No discount regardless of homebrew mode - homebrew only affects skill limits
@@ -1386,8 +1649,11 @@ function updatePoints() {
     });
     
     // Add ability costs
-    let abilityInput = document.getElementById('abilities-hidden-input').value;
-    let abilities = abilityInput.split(',').map(x => x.trim()).filter(x => x);
+    let abilitiesElement = document.getElementById('abilities-hidden-input');
+    let abilities = [];
+    if (abilitiesElement && abilitiesElement.value) {
+        abilities = abilitiesElement.value.split(',').map(x => x.trim()).filter(x => x);
+    }
     abilities.forEach(a => { 
         if (ABILITY_COSTS[a] !== undefined) {
             // No discount regardless of homebrew mode - homebrew only affects skill limits
@@ -1400,6 +1666,10 @@ function updatePoints() {
     let skillInputs = document.querySelectorAll('input[name="Agility"], input[name="Shooting"], input[name="Fighting"], input[name="Psyche"], input[name="Awareness"]');
     console.log("Calculating skill costs for:", Array.from(skillInputs).map(i => i.name + ":" + i.value));
     skillInputs.forEach(input => {
+        if (!input) {
+            console.error("Null input found in skill inputs");
+            return;
+        }
         let skillValue = parseInt(input.value) || 1;
         if (skillValue < 1) skillValue = 1; // Ensure minimum value of 1
         console.log(`Skill ${input.name}: value=${skillValue}, cost=${(skillValue - 1) * skillPointCost}`);
@@ -1427,7 +1697,6 @@ function updatePoints() {
         console.error("Error in updatePoints function:", error);
         alert("Error calculating points: " + error.message);
     }
-}
 }
 
 // Function to update costs when skill values change

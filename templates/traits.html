@@ -1,19 +1,172 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traits - Planet 28</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        .form-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        select, button {
+            padding: 8px 12px;
+            margin: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .current-list {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .trait-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+        .trait-info {
+            flex-grow: 1;
+        }
+        .trait-cost {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #e91e63;
+        }
+        .remove-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .remove-btn:hover {
+            background-color: #d32f2f;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2196F3;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 0;
+                box-shadow: none;
+            }
+            
+            select, button {
+                width: 100%;
+                margin: 5px 0;
+                box-sizing: border-box;
+            }
+            
+            .trait-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .trait-cost {
+                margin: 5px 0;
+            }
+            
+            .remove-btn {
+                margin-top: 5px;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Add Trait</h2>
-    <form action="/add_trait" method="post">
-        <select name="trait">
-            {% for trait in traits %}
-            <option value="{{ trait['name'] }}">{{ trait['name'] }} ({{ trait['cost'] }}) - {{ trait['effect'] }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Add Trait</button>
-    </form>
-    <p>Current Traits: {{ character['Traits'] }}</p>
-    <a href="/">Back to Character</a>
+    <div class="container">
+        <h1>Character Traits</h1>
+        
+        <div class="form-container">
+            <h2>Add Trait</h2>
+            <form action="/add_trait" method="post">
+                <select name="trait" style="width: 70%;">
+                    <option value="">-- Select a trait --</option>
+                    {% for trait in traits %}
+                    <option value="{{ trait['name'] }}">{{ trait['name'] }} ({{ trait['cost'] }} points) - {{ trait['effect'] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Add Trait</button>
+            </form>
+        </div>
+        
+        <div class="current-list">
+            <h2>Current Traits</h2>
+            {% if character['Traits']|length > 0 %}
+                <div style="margin-bottom: 10px;">
+                {% for trait in character['Traits'] %}
+                    <div class="trait-item">
+                        <div class="trait-info">
+                            <strong>{{ trait }}</strong>
+                            {% for t in traits %}
+                                {% if t.name == trait %}
+                                    - {{ t.effect }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="trait-cost">
+                            {% for t in traits %}
+                                {% if t.name == trait %}
+                                    {{ t.cost }} points
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        <form action="/remove_trait" method="post" style="display: inline;">
+                            <input type="hidden" name="trait" value="{{ trait }}">
+                            <button type="submit" class="remove-btn">Remove</button>
+                        </form>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p>No traits selected yet.</p>
+            {% endif %}
+        </div>
+        
+        <a href="/edit_character" class="back-link">← Back to Character</a>
+    </div>
 </body>
 </html>

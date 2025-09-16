@@ -306,6 +306,14 @@ def edit_character_get(request: Request, warband: str, char_name: str):
 @app.post("/edit_character/{warband}/{char_name}")
 async def edit_character_post(request: Request, warband: str, char_name: str):
     form = await request.form()
+    
+    # Debug the raw form data
+    print("---- FORM DATA DEBUG ----")
+    for key in form.keys():
+        values = form.getlist(key)
+        print(f"{key}: {values}")
+    print("------------------------")
+    
     wb_path = os.path.join(WARBANDS_DIR, warband)
     char_file = os.path.join(wb_path, f"{char_name}.json")
     if not os.path.exists(char_file):
@@ -319,11 +327,21 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     from app.abilities_api import list_abilities
     trait_costs = {t['name']: t['cost'] for t in list_traits()}
     ability_costs = {a['name']: a['cost'] for a in list_abilities()}
-    traits = form.get('Traits', '')
-    abilities = form.get('Abilities', '')
+    
+    # Get traits and abilities as lists of form values
+    traits_values = form.getlist('Traits')
+    abilities_values = form.getlist('Abilities')
     equipment = form.get('Equipment', '')
-    trait_list = [t.strip() for t in traits.split(',') if t.strip()]
-    ability_list = [a.strip() for a in abilities.split(',') if a.strip()]
+    
+    # Debug
+    print(f"Form keys: {form.keys()}")
+    print(f"Received Traits (multiple values): {traits_values}")
+    print(f"Received Abilities (multiple values): {abilities_values}")
+    
+    # Process lists - values already come as separate items, not comma-separated
+    trait_list = [t.strip() for t in traits_values if t.strip()]
+    ability_list = [a.strip() for a in abilities_values if a.strip()]
+    
     # Remove duplicates
     trait_list = list(dict.fromkeys(trait_list))
     ability_list = list(dict.fromkeys(ability_list))

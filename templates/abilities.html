@@ -1,19 +1,168 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abilities - Planet 28</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        .form-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        select, button {
+            padding: 8px 12px;
+            margin: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .current-list {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .ability-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+        .ability-info {
+            flex-grow: 1;
+        }
+        .ability-cost {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #e91e63;
+        }
+        .remove-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .remove-btn:hover {
+            background-color: #d32f2f;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2196F3;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 0;
+                box-shadow: none;
+            }
+            
+            select, button {
+                width: 100%;
+                margin: 5px 0;
+                box-sizing: border-box;
+            }
+            
+            .ability-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .ability-cost {
+                margin: 5px 0;
+            }
+            
+            .remove-btn {
+                margin-top: 5px;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Add Ability</h2>
-    <form action="/add_ability" method="post">
-        <select name="ability">
-            {% for ab in abilities %}
-            <option value="{{ ab['name'] }}">{{ ab['name'] }} ({{ ab['cost'] }}) - {{ ab['effect'] }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Add Ability</button>
-    </form>
-    <p>Current Abilities: {{ character['Abilities'] }}</p>
-    <a href="/">Back to Character</a>
+    <div class="container">
+        <h1>Character Abilities</h1>
+        
+        <div class="form-container">
+            <h2>Add Ability</h2>
+            <form action="/add_ability" method="post">
+                <select name="ability" style="width: 70%;">
+                    <option value="">-- Select an ability --</option>
+                    {% for ab in abilities %}
+                    <option value="{{ ab['name'] }}">{{ ab['name'] }} ({{ ab['cost'] }} points) - {{ ab['effect'] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Add Ability</button>
+            </form>
+        </div>
+        
+        <div class="current-list">
+            <h2>Current Abilities</h2>
+            {% if character['Abilities']|length > 0 %}
+                <div style="margin-bottom: 10px;">
+                {% for ability in character['Abilities'] %}
+                    <div class="ability-item">
+                        <div class="ability-info">
+                            <strong>{{ ability }}</strong>
+                            {% for ab in abilities %}
+                                {% if ab.name == ability %}
+                                    - {{ ab.effect }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="ability-cost">
+                            {% for ab in abilities %}
+                                {% if ab.name == ability %}
+                                    {{ ab.cost }} points
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        <form action="/remove_ability" method="post" style="display: inline;">
+                            <input type="hidden" name="ability" value="{{ ability }}">
+                            <button type="submit" class="remove-btn">Remove</button>
+                        </form>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p>No abilities selected yet.</p>
+            {% endif %}
+        </div>
+        
+        <a href="/edit_character" class="back-link">← Back to Character</a>
+    </div>
 </body>
 </html>

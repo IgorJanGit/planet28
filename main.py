@@ -124,7 +124,7 @@ def add_trait(trait: str = Form(...)):
 def remove_trait(trait: str = Form(...)):
     if trait in CHARACTER['Traits']:
         CHARACTER['Traits'].remove(trait)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/traits", status_code=303)
 
 @app.get("/abilities", response_class=HTMLResponse)
 def abilities(request: Request):
@@ -140,7 +140,7 @@ def add_ability(ability: str = Form(...)):
 def remove_ability(ability: str = Form(...)):
     if ability in CHARACTER['Abilities']:
         CHARACTER['Abilities'].remove(ability)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/abilities", status_code=303)
 
 @app.get("/arcana", response_class=HTMLResponse)
 def arcana(request: Request):
@@ -859,6 +859,14 @@ def edit_character_get(request: Request, warband: str, char_name: str):
 @app.post("/edit_character/{warband}/{char_name}")
 async def edit_character_post(request: Request, warband: str, char_name: str):
     form = await request.form()
+    
+    # Debug the raw form data
+    print("---- FORM DATA DEBUG ----")
+    for key in form.keys():
+        values = form.getlist(key)
+        print(f"{key}: {values}")
+    print("------------------------")
+    
     wb_path = os.path.join(WARBANDS_DIR, warband)
     char_file = os.path.join(wb_path, f"{char_name}.json")
     
@@ -902,17 +910,20 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     from app.abilities_api import list_abilities
     trait_costs = {t['name']: t['cost'] for t in list_traits()}
     ability_costs = {a['name']: a['cost'] for a in list_abilities()}
-    traits = form.get('Traits', '')
-    abilities = form.get('Abilities', '')
+    
+    # Get traits and abilities as lists of form values
+    traits_values = form.getlist('Traits')
+    abilities_values = form.getlist('Abilities')
     equipment = form.get('Equipment', '')
     
     # Debug
-    print(f"Received Traits: '{traits}'")
-    print(f"Received Abilities: '{abilities}'")
+    print(f"Form keys: {form.keys()}")
+    print(f"Received Traits (multiple values): {traits_values}")
+    print(f"Received Abilities (multiple values): {abilities_values}")
     
-    # Process lists with consistent delimiter handling
-    trait_list = [t.strip() for t in traits.split(',') if t.strip()]
-    ability_list = [a.strip() for a in abilities.split(',') if a.strip()]
+    # Process lists - values already come as separate items, not comma-separated
+    trait_list = [t.strip() for t in traits_values if t.strip()]
+    ability_list = [a.strip() for a in abilities_values if a.strip()]
     equipment_list = [e.strip() for e in equipment.split(',') if e.strip()]
     
     # Debug
