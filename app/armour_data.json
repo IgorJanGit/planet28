@@ -1,0 +1,70 @@
+{
+  "armour_list": [
+    {
+      "name": "No armour",
+      "defense_rating": "1D4-1",
+      "details": "No protection",
+      "cost": 0,
+      "special_rules": ""
+    },
+    {
+      "name": "Light armour",
+      "defense_rating": "1D6",
+      "details": "Provides no protection against weapons with the Energy keyword.",
+      "cost": 10,
+      "special_rules": ""
+    },
+    {
+      "name": "Ballistic plate",
+      "defense_rating": "1D8+4",
+      "details": "",
+      "cost": 15,
+      "special_rules": ""
+    },
+    {
+      "name": "Energy shield",
+      "defense_rating": "1D12+6",
+      "details": "This armour may only provide protection against damaged caused by weapons with the energy keyword.",
+      "cost": 30,
+      "special_rules": ""
+    },
+    {
+      "name": "Psy-hood",
+      "defense_rating": "N/A",
+      "details": "The wearer of this armour cannot be targeted by arcane abilities or weapons with the Psychic keyword.",
+      "cost": 50,
+      "special_rules": ""
+    },
+    {
+      "name": "Heavy armour",
+      "defense_rating": "1D12",
+      "details": "The wearer suffers –1 to their agility during movement actions.",
+      "cost": 50,
+      "special_rules": ""
+    },
+    {
+      "name": "Living armour",
+      "defense_rating": "Special",
+      "details": "This armour is a living being. At the start of each game roll 1D20. The armour now has that many hit-points. When the wearer is hit, remove the damage from the armour. If the armour loses all of its hit-points, it is destroyed for ever and offers no more protection.",
+      "cost": 30,
+      "special_rules": ""
+    },
+    {
+      "name": "Power armour",
+      "defense_rating": "2D10+5",
+      "details": "The wearer of this armour gains +1 to their agility. The wearer of this armour is immune to the effects of the Poisonous and Cumulative weapon special rules. If struck by weapons with the keyword Energy, roll 1D10. On a roll of 10, the armours internal systems have been damaged and must be rebooted, the wearer must spend a turn repairing the armour, during which they may not make any actions.",
+      "cost": 100,
+      "special_rules": ""
+    },
+    {
+      "name": "Volatile armour",
+      "defense_rating": "1D10+2",
+      "details": "If the user rolls a 10 when attempting a skill roll with this armour, then the armour deals damage to the wearer rather than protecting them.",
+      "cost": 15,
+      "special_rules": "Volatile"
+    }
+  ],
+  "special_rules": {
+    "Volatile": "If the user rolls a 10 when attempting a skill roll, the item deals damage to the user rather than functioning properly."
+  }
+}

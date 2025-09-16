@@ -16,6 +16,8 @@ from app.traits_api import list_traits, get_trait
 from app.abilities_api import list_abilities, get_ability
 from app.arcana_api import list_arcana
 from app.weapons_api import list_weapons, get_weapon_types, get_special_rules
+from app.armour_api import list_armour, get_armour, get_armour_special_rules
+from app.misc_items_api import get_all_misc_items, get_misc_item_by_name, get_misc_items_special_rules
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -59,6 +61,7 @@ CHARACTER = {
     'Traits': [],
     'Abilities': [],
     'Equipment': [],
+    'Armour': [],
 }
 
 WARBANDS_DIR = "warbands"
@@ -250,8 +253,29 @@ async def calculate_points(request: Request):
             # Add weapon costs to total points
             points += weapon_cost
             
+            # Calculate armour costs
+            armour_cost = 0
+            armour_input = form_data.get('armour', '')
+            if armour_input:
+                # Split the armour string into a list of armour names
+                armour_names = [a.strip() for a in armour_input.split(',') if a.strip()]
+                
+                # Import the armour API functions
+                from app.armour_api import get_armour
+                
+                # Look up each armour and add its cost
+                for armour_name in armour_names:
+                    armour = get_armour(armour_name)
+                    if armour:
+                        armour_cost += armour.get('cost', 0)
+                    else:
+                        print(f"Warning: Armour '{armour_name}' not found in database")
+            
+            # Add armour costs to total points
+            points += armour_cost
+            
             # Debug output
-            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], hit_points={hit_points}, hit_points_cost={hit_points_cost}, speed={speed}, speed_cost={speed_cost}, weapons_cost={weapon_cost}, total_points={points}")
+            print(f"API Points calculation: homebrew={homebrew_enabled}, skills=[{agility},{shooting},{fighting},{psyche},{awareness}], hit_points={hit_points}, hit_points_cost={hit_points_cost}, speed={speed}, speed_cost={speed_cost}, weapons_cost={weapon_cost}, armour_cost={armour_cost}, total_points={points}")
             
             return {"points": points, "success": True}
         except Exception as e:
@@ -500,6 +524,222 @@ def remove_vehicle(request: Request, vehicle_name: str = Form(...)):
 
 
 
+@app.get("/armour/{warband}/{char_name}", response_class=HTMLResponse)
+def armour_get(request: Request, warband: str, char_name: str):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{char_name}.json")
+    config_path = os.path.join(wb_path, "warband_config.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    # Check if homebrew is enabled for this warband
+    homebrew_enabled = False
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+                if "homebrew_enabled" in config:
+                    if isinstance(config["homebrew_enabled"], str):
+                        homebrew_enabled = config["homebrew_enabled"].lower() == "true"
+                    else:
+                        homebrew_enabled = bool(config["homebrew_enabled"])
+        except:
+            # If there's an error loading the config, default to homebrew disabled
+            pass
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Get all available armour from the API
+    armour_list = list_armour()
+    
+    # Get special rules data
+    from app.special_rules_api import get_all_special_rules
+    special_rules_data = get_all_special_rules()
+    
+    # Get armour special rules
+    armour_special_rules = get_armour_special_rules()
+    
+    # Merge armour special rules with general special rules
+    all_special_rules = {**special_rules_data, **armour_special_rules}
+    
+    return templates.TemplateResponse(
+        "armour.html",
+        {
+            "request": request,
+            "warband": warband,
+            "character_name": character['Name'],
+            "armour_list": armour_list,
+            "character_armour": character.get('Armour', []),
+            "special_rules_data": all_special_rules,
+            "homebrew_enabled": homebrew_enabled
+        }
+    )
+
+@app.post("/add_armour/{warband}/{char_name}")
+def add_armour(request: Request, warband: str, char_name: str, armour_name: str = Form(...)):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{char_name}.json")
+    config_path = os.path.join(wb_path, "warband_config.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    # Check if homebrew is enabled for this warband
+    homebrew_enabled = False
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+                if "homebrew_enabled" in config:
+                    if isinstance(config["homebrew_enabled"], str):
+                        homebrew_enabled = config["homebrew_enabled"].lower() == "true"
+                    else:
+                        homebrew_enabled = bool(config["homebrew_enabled"])
+        except:
+            # If there's an error loading the config, default to homebrew disabled
+            pass
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Initialize Armour array if it doesn't exist
+    if 'Armour' not in character:
+        character['Armour'] = []
+    
+    # If homebrew is disabled and trying to add a new armor when one already exists
+    if not homebrew_enabled and len(character['Armour']) > 0 and armour_name not in character['Armour']:
+        # Replace existing armor with the new one instead of showing error
+        character['Armour'] = [armour_name]
+    # Add armour if not already present
+    elif armour_name not in character['Armour']:
+        character['Armour'].append(armour_name)
+    
+    # Save character
+    with open(char_file, "w") as f:
+        json.dump(character, f, indent=2)
+    
+    # Check if request is AJAX (fetch API)
+    if request.headers.get("accept") == "*/*":
+        # Return a simple success response for AJAX requests
+        return {"success": True, "message": "Armor added successfully"}
+    else:
+        # Return a redirect for regular form submissions (fallback)
+        return RedirectResponse(f"/armour/{warband}/{char_name}", status_code=303)
+
+@app.post("/remove_armour/{warband}/{char_name}")
+def remove_armour(request: Request, warband: str, char_name: str, armour_name: str = Form(...)):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{char_name}.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Remove armour if present
+    if 'Armour' in character and armour_name in character['Armour']:
+        character['Armour'].remove(armour_name)
+    
+    # Save character
+    with open(char_file, "w") as f:
+        json.dump(character, f, indent=2)
+    
+    # Check if request is AJAX (fetch API)
+    if request.headers.get("accept") == "*/*":
+        # Return a simple success response for AJAX requests
+        return {"success": True, "message": "Armor removed successfully"}
+    else:
+        # Return a redirect for regular form submissions (fallback)
+        return RedirectResponse(f"/armour/{warband}/{char_name}", status_code=303)
+
+# --- Miscellaneous Items Routes ---
+@app.get("/misc_items/{warband}/{char_name}", response_class=HTMLResponse)
+def misc_items_get(request: Request, warband: str, char_name: str):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{char_name}.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Get all available misc items from the API
+    misc_items_list = get_all_misc_items()
+    
+    # Get special rules data
+    from app.special_rules_api import get_all_special_rules
+    special_rules_data = get_all_special_rules()
+    
+    # Get misc items special rules
+    misc_items_special_rules = get_misc_items_special_rules()
+    
+    # Merge with general special rules
+    for rule, desc in misc_items_special_rules.items():
+        if rule not in special_rules_data:
+            special_rules_data[rule] = desc
+    
+    # Get character's misc items if any
+    character_misc_items = character.get('MiscItems', [])
+    
+    return templates.TemplateResponse("misc_items.html", {
+        "request": request,
+        "warband": warband,
+        "character_name": char_name,
+        "misc_items_list": misc_items_list,
+        "character_misc_items": character_misc_items,
+        "special_rules_data": special_rules_data
+    })
+
+@app.post("/add_misc_item/{warband}/{char_name}")
+def add_misc_item(request: Request, warband: str, char_name: str, item_name: str = Form(...)):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{char_name}.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Initialize MiscItems list if it doesn't exist
+    if 'MiscItems' not in character:
+        character['MiscItems'] = []
+    
+    # Add item if not already present
+    if item_name not in character['MiscItems']:
+        character['MiscItems'].append(item_name)
+    
+    # Save character
+    with open(char_file, "w") as f:
+        json.dump(character, f, indent=2)
+    
+    return RedirectResponse(f"/misc_items/{warband}/{char_name}", status_code=303)
+
+@app.post("/remove_misc_item/{warband}/{char_name}")
+def remove_misc_item(request: Request, warband: str, char_name: str, item_name: str = Form(...)):
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{char_name}.json")
+    
+    if not os.path.exists(char_file):
+        return RedirectResponse(f"/warband/{warband}", status_code=303)
+    
+    with open(char_file, "r") as f:
+        character = json.load(f)
+    
+    # Remove item if present
+    if 'MiscItems' in character and item_name in character['MiscItems']:
+        character['MiscItems'].remove(item_name)
+    
+    # Save character
+    with open(char_file, "w") as f:
+        json.dump(character, f, indent=2)
+    
+    return RedirectResponse(f"/misc_items/{warband}/{char_name}", status_code=303)
+
 # --- Character Edit Routes ---
 @app.get("/edit_character/{warband}/{char_name}", response_class=HTMLResponse)
 def edit_character_get(request: Request, warband: str, char_name: str):
@@ -573,9 +813,29 @@ def edit_character_get(request: Request, warband: str, char_name: str):
     for weapon_name in character.get('Weapons', []):
         weapon_details[weapon_name] = get_weapon(weapon_name)
     
+    # Get armour details for each armour the character has
+    from app.armour_api import get_armour
+    armour_details = {}
+    for armour_name in character.get('Armour', []):
+        armour_details[armour_name] = get_armour(armour_name)
+    
+    # Get misc items details for each item the character has
+    misc_items_details = {}
+    for item_name in character.get('MiscItems', []):
+        misc_items_details[item_name] = get_misc_item_by_name(item_name)
+    
     # Get special rules data
     from app.special_rules_api import get_all_special_rules
     special_rules_data = get_all_special_rules()
+    
+    # Get armour special rules
+    armour_special_rules = get_armour_special_rules()
+    
+    # Get misc items special rules
+    misc_items_special_rules = get_misc_items_special_rules()
+    
+    # Merge special rules data
+    all_special_rules = {**special_rules_data, **armour_special_rules, **misc_items_special_rules}
                 
     # Pass both base and modified skills to template
     return templates.TemplateResponse(
@@ -590,7 +850,9 @@ def edit_character_get(request: Request, warband: str, char_name: str):
             "mod_skills": mod_skills,
             "homebrew_enabled": homebrew_enabled,
             "weapon_details": weapon_details,
-            "special_rules_data": special_rules_data
+            "armour_details": armour_details,
+            "misc_items_details": misc_items_details,
+            "special_rules_data": all_special_rules
         }
     )
 
@@ -745,6 +1007,46 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     points += weapon_cost
     print(f"Weapon costs: {weapon_cost}")
     
+    # Calculate armour costs
+    armour_cost = 0
+    armour_str = form.get('armour', '')
+    armour_list = [a.strip() for a in armour_str.split(',') if a.strip()]
+    
+    # Import armour API functions
+    from app.armour_api import get_armour
+    
+    # Look up each armour and add its cost
+    for armour_name in armour_list:
+        armour = get_armour(armour_name)
+        if armour:
+            armour_cost += armour.get('cost', 0)
+        else:
+            print(f"Warning: Armour '{armour_name}' not found in database")
+    
+    # Add armour costs to total points
+    points += armour_cost
+    print(f"Armour costs: {armour_cost}")
+    
+    # Calculate miscellaneous items costs
+    misc_items_cost = 0
+    misc_items_str = form.get('misc_items', '')
+    misc_items_list = [i.strip() for i in misc_items_str.split(',') if i.strip()]
+    
+    # Import misc items API functions
+    from app.misc_items_api import get_misc_item_by_name
+    
+    # Look up each item and add its cost
+    for item_name in misc_items_list:
+        item = get_misc_item_by_name(item_name)
+        if item:
+            misc_items_cost += item.get('cost', 0)
+        else:
+            print(f"Warning: Misc item '{item_name}' not found in database")
+    
+    # Add miscellaneous items costs to total points
+    points += misc_items_cost
+    print(f"Miscellaneous items costs: {misc_items_cost}")
+    
     # Handle Speed
     try:
         # Get speed from form
@@ -785,8 +1087,18 @@ async def edit_character_post(request: Request, warband: str, char_name: str):
     character['Equipment'] = equipment_list
     character['Weapons'] = weapon_list
     
+    # Process armour
+    armour_str = form.get('armour', '')
+    armour_list = [a.strip() for a in armour_str.split(',') if a.strip()]
+    character['Armour'] = armour_list
+    
+    # Process miscellaneous items
+    misc_items_str = form.get('misc_items', '')
+    misc_items_list = [i.strip() for i in misc_items_str.split(',') if i.strip()]
+    character['MiscItems'] = misc_items_list
+    
     # Debug
-    print(f"Character after update: Traits={character['Traits']}, Abilities={character['Abilities']}, Weapons={character['Weapons']}")
+    print(f"Character after update: Traits={character['Traits']}, Abilities={character['Abilities']}, Weapons={character['Weapons']}, Armour={character['Armour']}, MiscItems={character['MiscItems']}")
     
     # Save notes/background and new fields
     character['Notes'] = form.get('Notes', character.get('Notes', ''))
@@ -834,6 +1146,21 @@ def weapons_page(request: Request, warband: str, character_name: str):
     weapon_types = get_weapon_types()
     special_rules = get_special_rules()
     
+    # Get character data to see what weapons are already equipped
+    wb_path = os.path.join(WARBANDS_DIR, warband)
+    char_file = os.path.join(wb_path, f"{character_name}.json")
+    
+    equipped_weapons = []
+    if os.path.exists(char_file):
+        with open(char_file, "r") as f:
+            character = json.load(f)
+            equipped_weapons = character.get('Weapons', [])
+    
+    # Count occurrences of each weapon
+    weapon_counts = {}
+    for weapon_name in equipped_weapons:
+        weapon_counts[weapon_name] = weapon_counts.get(weapon_name, 0) + 1
+    
     return templates.TemplateResponse(
         "weapons.html",
         {
@@ -842,7 +1169,9 @@ def weapons_page(request: Request, warband: str, character_name: str):
             "character_name": character_name,
             "weapons": weapons,
             "weapon_types": weapon_types,
-            "special_rules": special_rules
+            "special_rules": special_rules,
+            "equipped_weapons": equipped_weapons,
+            "weapon_counts": weapon_counts
         }
     )
 
@@ -897,7 +1226,13 @@ def add_weapon(request: Request, warband: str, character_name: str, weapon_name:
     with open(char_file, "w") as f:
         json.dump(character, f, indent=2)
     
-    return RedirectResponse(f"/edit_character/{warband}/{character_name}", status_code=303)
+    # Check if request is AJAX (fetch API)
+    if request.headers.get("accept") == "*/*":
+        # Return a simple success response for AJAX requests
+        return {"success": True, "message": "Weapon added successfully"}
+    else:
+        # Return a redirect for regular form submissions (fallback)
+        return RedirectResponse(f"/weapons/{warband}/{character_name}", status_code=303)
 
 @app.post("/remove_weapon/{warband}/{character_name}")
 def remove_weapon(request: Request, warband: str, character_name: str, weapon_name: str = Form(...)):
@@ -919,7 +1254,13 @@ def remove_weapon(request: Request, warband: str, character_name: str, weapon_na
     with open(char_file, "w") as f:
         json.dump(character, f, indent=2)
     
-    return RedirectResponse(f"/edit_character/{warband}/{character_name}", status_code=303)
+    # Check if request is AJAX (fetch API)
+    if request.headers.get("accept") == "*/*":
+        # Return a simple success response for AJAX requests
+        return {"success": True, "message": "Weapon removed successfully"}
+    else:
+        # Return a redirect for regular form submissions (fallback)
+        return RedirectResponse(f"/weapons/{warband}/{character_name}", status_code=303)
 
 @app.get("/api/special_rule/{rule_name}")
 async def get_special_rule_api(rule_name: str):

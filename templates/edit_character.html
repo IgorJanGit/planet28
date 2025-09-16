@@ -16,17 +16,26 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Character - {{ character['Name'] }}</title>
     <link rel="stylesheet" href="/static/css/weapon_profiles.css">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f4f4f4;
+            margin: 0;
+            padding: 10px;
+        }
         .sheet-box {
             border: 3px solid #000;
-            width: 580px;
+            max-width: 580px;
+            width: 100%;
             margin: 36px auto 24px auto;
             padding: 0;
             background: #fff;
             overflow: hidden;
+            box-sizing: border-box;
         }
         .sheet-row, .sheet-header, .sheet-section {
             border-bottom: 1px solid #000;
@@ -202,7 +211,7 @@
         }
         
         /* View display */
-        .weapon-view-container {
+        .weapon-view-container, .armour-view-container {
             margin-bottom: 15px;
         }
         
@@ -416,7 +425,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.15);
         }
         
-        .add-weapon-btn {
+        .add-weapon-btn, .add-armour-btn {
             background: #4CAF50;
             color: white;
             display: flex;
@@ -430,7 +439,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .add-weapon-btn:hover {
+        .add-weapon-btn:hover, .add-armour-btn:hover {
             background: #45a049;
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.15);
@@ -502,6 +511,9 @@
     </style>
 </head>
 <body style="background:#f4f4f4;">
+<div style="width: 100%; max-width: 580px; margin: 10px auto 0;">
+    <a href="/warband/{{ warband }}" style="display: inline-block; margin-bottom: 10px; color: #0066cc; text-decoration: none; font-weight: bold;">← Back to Warband</a>
+</div>
 <div style="text-align:center;margin-bottom:10px;font-size:1.1em;">
     <b>Warband Points Limit:</b> {{ warband_points }}
     {% if homebrew_enabled %}
@@ -708,6 +720,122 @@
                                     </div>
                                 {% else %}
                                     <div class="weapon-empty">No weapons equipped</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Armour section -->
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;" class="subsection-title">
+                                <span>Armour:</span>
+                                <a href="/armour/{{ warband }}/{{ character['Name'] }}" class="add-armour-btn">
+                                    <span style="margin-right:5px;">+</span> Add Armour
+                                </a>
+                            </div>
+                            <div id="armour-list-box" style="min-height: 50px; margin-bottom: 10px;">
+                                <input type="hidden" name="Armour" id="armour-hidden-input" value="{{ character['Armour']|join(',') if character['Armour'] else '' }}">
+                                
+                                {% if character.get('Armour') %}
+                                    <div class="armour-view-container">
+                                        <div id="armour-table-container" class="table-view show">
+                                            <table class="weapons-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Armour</th>
+                                                        <th>Defense Rating</th>
+                                                        <th>Details</th>
+                                                        <th>Special Rules</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for armour in character['Armour'] %}
+                                                        {% set details = armour_details.get(armour, {}) %}
+                                                        <tr>
+                                                            <td class="table-weapon-name">{{ armour }} {% if details and details.cost is defined %}({{ details.cost }}{% if details.cost != 0 %}c{% endif %}){% endif %}</td>
+                                                            <td>{% if details %}{{ details.defense_rating }}{% endif %}</td>
+                                                            <td>{% if details %}{{ details.details }}{% endif %}</td>
+                                                            <td>
+                                                                {% if details and details.special_rules %}
+                                                                    {% set rules = details.special_rules.split(',') %}
+                                                                    {% for rule in rules %}
+                                                                        {% set rule_clean = rule.strip() %}
+                                                                        <span class="special-rule">
+                                                                            <a href="javascript:void(0);" class="show-rule-btn" data-rule="{{ rule_clean }}" style="color:#06c;text-decoration:none;cursor:pointer;">{{ rule_clean }}</a>
+                                                                        </span>{% if not loop.last %}, {% endif %}
+                                                                    {% endfor %}
+                                                                    <div class="special-rule-descriptions" style="margin-top:5px;"></div>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td class="table-weapon-remove">
+                                                                <button type="button" class="table-remove-btn remove-armour-btn" data-armour="{{ armour }}">&times;</button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="weapon-empty">No armour equipped</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Miscellaneous Items section -->
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;" class="subsection-title">
+                                <span>Miscellaneous Items:</span>
+                                <a href="/misc_items/{{ warband }}/{{ character['Name'] }}" class="add-weapon-btn">
+                                    <span style="margin-right:5px;">+</span> Add Items
+                                </a>
+                            </div>
+                            <div id="misc-items-list-box" style="min-height: 50px; margin-bottom: 10px;">
+                                <input type="hidden" name="MiscItems" id="misc-items-hidden-input" value="{{ character['MiscItems']|join(',') if character.get('MiscItems') else '' }}">
+                                
+                                {% if character.get('MiscItems') %}
+                                    <div class="weapon-view-container">
+                                        <div id="misc-items-table-container" class="table-view show">
+                                            <table class="weapons-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Item</th>
+                                                        <th>Description</th>
+                                                        <th>Special Rules</th>
+                                                        <th>Cost</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for item in character['MiscItems'] %}
+                                                        {% set details = misc_items_details.get(item, {}) %}
+                                                        <tr>
+                                                            <td class="table-weapon-name">{{ item }} {% if details and details.cost is defined %}({{ details.cost }}{% if details.cost != 0 %}c{% endif %}){% endif %}</td>
+                                                            <td>{% if details %}{{ details.description }}{% endif %}</td>
+                                                            <td>
+                                                                {% if details and details.special_rules %}
+                                                                    {% set rules = details.special_rules.split(',') %}
+                                                                    {% for rule in rules %}
+                                                                        {% set rule_clean = rule.strip() %}
+                                                                        <span class="special-rule">
+                                                                            <a href="javascript:void(0);" class="show-rule-btn" data-rule="{{ rule_clean }}" style="color:#06c;text-decoration:none;cursor:pointer;">{{ rule_clean }}</a>
+                                                                        </span>{% if not loop.last %}, {% endif %}
+                                                                    {% endfor %}
+                                                                    <div class="special-rule-descriptions" style="margin-top:5px;"></div>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{% if details %}{{ details.cost }} credits{% endif %}</td>
+                                                            <td class="table-weapon-remove">
+                                                                <button type="button" class="table-remove-btn remove-misc-item-btn" data-item="{{ item }}">&times;</button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="weapon-empty">No items equipped</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -1405,6 +1533,12 @@ function updatePointsFromServer() {
         // Add weapons
         formData.append('weapons', document.getElementById('weapons-hidden-input').value || '');
         
+        // Add armour
+        formData.append('armour', document.getElementById('armour-hidden-input').value || '');
+        
+        // Add misc items
+        formData.append('misc_items', document.getElementById('misc-items-hidden-input').value || '');
+        
         console.log("Sending data to API:", 
             document.querySelector('input[name="Agility"]').value,
             document.querySelector('input[name="Shooting"]').value,
@@ -1564,6 +1698,80 @@ document.addEventListener('DOMContentLoaded', function() {
             if (weapon) {
                 handleWeaponRemove(e, weapon);
             }
+        }
+        
+        // Handle armour removal
+        if (e.target.classList.contains('remove-armour-btn')) {
+            const armourName = e.target.getAttribute('data-armour');
+            if (!armourName) return;
+            
+            // Update hidden input
+            const armourInput = document.getElementById('armour-hidden-input');
+            let armourList = armourInput.value ? armourInput.value.split(',') : [];
+            armourList = armourList.filter(a => a !== armourName);
+            armourInput.value = armourList.join(',');
+            
+            // Remove from the table
+            const armourTableContainer = document.getElementById('armour-table-container');
+            if (armourTableContainer) {
+                const rows = armourTableContainer.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    if (row.querySelector('td').textContent.includes(armourName)) {
+                        row.remove();
+                    }
+                });
+                
+                // If no rows left, show empty message
+                if (armourTableContainer.querySelectorAll('tbody tr').length === 0) {
+                    const armourListBox = document.getElementById('armour-list-box');
+                    if (armourListBox) {
+                        armourListBox.innerHTML = '<div class="weapon-empty">No armour equipped</div>';
+                    }
+                }
+            }
+            
+            // Update points calculation
+            updatePointsFromServer();
+            
+            // Trigger form update
+            scheduleSave();
+        }
+        
+        // Handle misc item removal
+        if (e.target.classList.contains('remove-misc-item-btn')) {
+            const itemName = e.target.getAttribute('data-item');
+            if (!itemName) return;
+            
+            // Update hidden input
+            const itemsInput = document.getElementById('misc-items-hidden-input');
+            let itemsList = itemsInput.value ? itemsInput.value.split(',') : [];
+            itemsList = itemsList.filter(item => item !== itemName);
+            itemsInput.value = itemsList.join(',');
+            
+            // Remove from the table
+            const itemsTableContainer = document.getElementById('misc-items-table-container');
+            if (itemsTableContainer) {
+                const rows = itemsTableContainer.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    if (row.querySelector('td').textContent.includes(itemName)) {
+                        row.remove();
+                    }
+                });
+                
+                // If no items left, show "No items equipped" message
+                if (itemsTableContainer.querySelectorAll('tbody tr').length === 0) {
+                    const itemsListBox = document.getElementById('misc-items-list-box');
+                    if (itemsListBox) {
+                        itemsListBox.innerHTML = '<div class="weapon-empty">No items equipped</div>';
+                    }
+                }
+            }
+            
+            // Update points calculation
+            updatePointsFromServer();
+            
+            // Trigger form update
+            scheduleSave();
         }
     });
 });

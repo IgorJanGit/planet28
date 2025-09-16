@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planet28 - Armour Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.16), 0 2px 4px rgba(0,0,0,0.23);
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #3f51b5;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+        .sortable {
+            cursor: pointer;
+            position: relative;
+        }
+        .sortable:hover {
+            background-color: #303f9f;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+        .sorted-asc .sort-icon {
+            content: "↑";
+            opacity: 1;
+        }
+        .sorted-desc .sort-icon {
+            content: "↓";
+            opacity: 1;
+        }
+        .special-rule {
+            cursor: pointer;
+            color: #ff5722;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 1px dotted #ff5722;
+            transition: all 0.2s ease;
+            padding: 2px 0;
+        }
+        .special-rule:hover {
+            color: #e64a19;
+            background-color: rgba(255, 87, 34, 0.1);
+        }
+        .rule-description {
+            display: none;
+            padding: 12px;
+            margin: 8px 0;
+            background-color: #fff3e0;
+            border-left: 4px solid #ff5722;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 13px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .add-armour-btn, .remove-armour-btn {
+                padding: 6px 10px;
+                min-width: 60px;
+                font-size: 12px;
+            }
+            
+            .back-link {
+                margin-bottom: 15px;
+                display: block;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+                font-size: 12px;
+            }
+            
+            .page-header h1 {
+                font-size: 1.3em;
+            }
+            
+            .page-header p {
+                font-size: 0.9em;
+            }
+        }
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            border-left: 4px solid #3f51b5;
+        }
+        .filter-section h3 {
+            margin-top: 0;
+            color: #3f51b5;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            color: #555;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .filter-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-button.apply {
+            background-color: #3f51b5;
+            color: white;
+        }
+        .filter-button.reset {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .filter-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .add-armour-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            min-width: 80px;
+            text-align: center;
+        }
+        .add-armour-btn:hover {
+            background-color: #388e3c;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+        .remove-armour-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            min-width: 80px;
+            text-align: center;
+        }
+        .remove-armour-btn:hover {
+            background-color: #d32f2f;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+        a.back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a.back-link:hover {
+            text-decoration: underline;
+        }
+        .page-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3f51b5;
+        }
+        .page-header h1 {
+            margin-bottom: 5px;
+            color: #3f51b5;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 16px;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="/edit_character/{{ warband }}/{{ character_name }}" class="back-link">← Back to Character</a>
+    
+    <div class="page-header">
+        <h1>Armour Selection</h1>
+        <p>Select armour to equip your character. Click on special rules for detailed descriptions.</p>
+        {% if not homebrew_enabled and character_armour|length > 0 %}
+        <div class="note-message" style="background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 12px 15px; margin-top: 10px; border-radius: 4px; color: #2e7d32;">
+            <strong>Note:</strong> With homebrew disabled, a character can only wear one type of armor. Selecting a different armor will replace your current armor.
+        </div>
+        {% endif %}
+    </div>
+    
+    <table id="armourTable">
+        <thead>
+            <tr>
+                <th class="sortable" onclick="sortTable(0)">Armour <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(1)">Defense Rating <span class="sort-icon">↕</span></th>
+                <th>Details</th>
+                <th>Special Rules</th>
+                <th class="sortable" onclick="sortTable(4)">Cost <span class="sort-icon">↕</span></th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for armour in armour_list %}
+            <tr class="armour-row">
+                <td><strong>{{ armour.name }}</strong></td>
+                <td>{{ armour.defense_rating }}</td>
+                <td>{{ armour.details }}</td>
+                <td>
+                    {% if armour.special_rules %}
+                        {% for rule in armour.special_rules.split(',') %}
+                            {% set rule_clean = rule.strip() %}
+                            {% if rule_clean %}
+                                <span class="special-rule" onclick="toggleRuleDescription(this, '{{ rule_clean }}')">{{ rule_clean }}</span>{% if not loop.last %}, {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% for rule in armour.special_rules.split(',') %}
+                            {% set rule_clean = rule.strip() %}
+                            {% if rule_clean %}
+                                <div class="rule-description" data-rule="{{ rule_clean|replace(' ', '-') }}">
+                                    <strong>{{ rule_clean }}:</strong> {{ special_rules_data.get(rule_clean, "No description available.") }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ armour.cost }} credits</td>
+                <td>
+                    {% if armour.name in character_armour %}
+                    <form method="POST" action="/remove_armour/{{ warband }}/{{ character_name }}">
+                        <input type="hidden" name="armour_name" value="{{ armour.name }}">
+                        <button type="submit" class="remove-armour-btn">Remove</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="/add_armour/{{ warband }}/{{ character_name }}">
+                        <input type="hidden" name="armour_name" value="{{ armour.name }}">
+                        <button type="submit" class="add-armour-btn">Add</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        // Function to toggle rule description visibility
+        function toggleRuleDescription(clickedElement, ruleName) {
+            const ruleDataAttr = ruleName.replace(/ /g, '-');
+            // Find the closest description within the same cell
+            const cell = clickedElement.closest('td');
+            const ruleElement = cell.querySelector(`.rule-description[data-rule="${ruleDataAttr}"]`);
+            
+            // Toggle this rule description only
+            if (ruleElement) {
+                ruleElement.style.display = ruleElement.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+        
+        // Table sorting function
+        function sortTable(columnIndex) {
+            const table = document.getElementById('armourTable');
+            let switching = true;
+            let shouldSwitch = false;
+            let i, x, y;
+            let switchCount = 0;
+            let dir = 'asc';
+            
+            // Reset all sort icons
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            while (switching) {
+                switching = false;
+                const rows = table.rows;
+                
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName('td')[columnIndex];
+                    y = rows[i + 1].getElementsByTagName('td')[columnIndex];
+                    
+                    // Get the text content for comparison
+                    let xContent = x.textContent.toLowerCase();
+                    let yContent = y.textContent.toLowerCase();
+                    
+                    // If it's a numeric column, convert to numbers for sorting
+                    if (columnIndex === 1 || columnIndex === 4) {
+                        xContent = parseFloat(xContent.replace(/[^\d.-]/g, '')) || 0;
+                        yContent = parseFloat(yContent.replace(/[^\d.-]/g, '')) || 0;
+                    }
+                    
+                    if (dir === 'asc') {
+                        if (xContent > yContent) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === 'desc') {
+                        if (xContent < yContent) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchCount++;
+                } else {
+                    if (switchCount === 0 && dir === 'asc') {
+                        dir = 'desc';
+                        switching = true;
+                    }
+                }
+            }
+            
+            // Update the sort icon and header class
+            const header = table.rows[0].getElementsByTagName('th')[columnIndex];
+            header.classList.add(dir === 'asc' ? 'sorted-desc' : 'sorted-asc');
+            
+            // Update sort icon text
+            const sortIcon = header.querySelector('.sort-icon');
+            if (sortIcon) {
+                sortIcon.textContent = dir === 'asc' ? '↓' : '↑';
+            }
+        }
+
+        // Add event listeners to all "Add" and "Remove" buttons once the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all add armour forms
+            const addForms = document.querySelectorAll('form[action^="/add_armour/"]');
+            const removeForms = document.querySelectorAll('form[action^="/remove_armour/"]');
+            
+            // Add event listener to each add form
+            addForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent the default form submission
+                    
+                    const armourName = form.querySelector('input[name="armour_name"]').value;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+                    
+                    // Change button text to indicate loading
+                    submitBtn.textContent = 'Adding...';
+                    submitBtn.disabled = true;
+                    
+                    // Create FormData object
+                    const formData = new FormData(form);
+                    
+                    // Send AJAX request
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Success - update the UI to show it's now added
+                            submitBtn.textContent = 'Added!';
+                            submitBtn.style.backgroundColor = '#4CAF50';
+                            
+                            // Refresh the page after a short delay to show updated state
+                            // This is necessary for armor because of the "single armor" rule logic
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            // Error
+                            submitBtn.textContent = 'Error!';
+                            submitBtn.style.backgroundColor = '#f44336';
+                            
+                            // Reset button after 1.5 seconds
+                            setTimeout(() => {
+                                submitBtn.textContent = originalBtnText;
+                                submitBtn.disabled = false;
+                                submitBtn.style.backgroundColor = '';
+                            }, 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        submitBtn.textContent = 'Error!';
+                        submitBtn.style.backgroundColor = '#f44336';
+                        
+                        // Reset button after 1.5 seconds
+                        setTimeout(() => {
+                            submitBtn.textContent = originalBtnText;
+                            submitBtn.disabled = false;
+                            submitBtn.style.backgroundColor = '';
+                        }, 1500);
+                    });
+                });
+            });
+            
+            // Add event listener to each remove form
+            removeForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent the default form submission
+                    
+                    const armourName = form.querySelector('input[name="armour_name"]').value;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+                    
+                    // Change button text to indicate loading
+                    submitBtn.textContent = 'Removing...';
+                    submitBtn.disabled = true;
+                    
+                    // Create FormData object
+                    const formData = new FormData(form);
+                    
+                    // Send AJAX request
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Success - refresh the page to show updated state
+                            window.location.reload();
+                        } else {
+                            // Error
+                            submitBtn.textContent = 'Error!';
+                            submitBtn.style.backgroundColor = '#f44336';
+                            
+                            // Reset button after 1.5 seconds
+                            setTimeout(() => {
+                                submitBtn.textContent = originalBtnText;
+                                submitBtn.disabled = false;
+                                submitBtn.style.backgroundColor = '';
+                            }, 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        submitBtn.textContent = 'Error!';
+                        submitBtn.style.backgroundColor = '#f44336';
+                        
+                        // Reset button after 1.5 seconds
+                        setTimeout(() => {
+                            submitBtn.textContent = originalBtnText;
+                            submitBtn.disabled = false;
+                            submitBtn.style.backgroundColor = '';
+                        }, 1500);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

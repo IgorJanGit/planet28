@@ -1,0 +1,72 @@
+{
+  "items": [
+    {
+      "name": "Ammo - rough",
+      "description": "A single piece of rough ammo, enough for one shot.",
+      "cost": 2,
+      "special_rules": "One-use",
+      "details": "Basic ammunition for weapons."
+    },
+    {
+      "name": "Ammo - basic",
+      "description": "A single piece of basic ammo, enough for one shot.",
+      "cost": 4,
+      "special_rules": "One-use",
+      "details": "Standard ammunition for weapons."
+    },
+    {
+      "name": "Ammo - special",
+      "description": "A single piece of special ammo, enough for one shot.",
+      "cost": 7,
+      "special_rules": "One-use",
+      "details": "High-quality ammunition for weapons."
+    },
+    {
+      "name": "Med kit",
+      "description": "A single med kit. When used, restores 5 hit-points.",
+      "cost": 15,
+      "special_rules": "One-use, Healing",
+      "details": "Emergency medical supplies for battlefield healing."
+    },
+    {
+      "name": "Strange idol",
+      "description": "A strange alien idol. The owner may reroll a failed (P) roll in exchange for 1 hit point.",
+      "cost": 25,
+      "special_rules": "Psychic, Blood Sacrifice",
+      "details": "Mysterious artifact of unknown origin with psychic properties."
+    },
+    {
+      "name": "Stimulants",
+      "description": "A single dose of stimulants. When used, the user gains +1 to all their skills for 1D6 turns. Each successive use of stimulants requires an additional dose to work. (E.g. The first use only needs 1 dose, the second needs 2, the third 3 etc.)",
+      "cost": 30,
+      "special_rules": "One-use, Skill Boost, Addictive",
+      "details": "Powerful combat enhancers with diminishing returns."
+    },
+    {
+      "name": "Safety deposit box",
+      "description": "A safe box in a reputable galactic bank. Your warband may take any items from their inventory and store them in the deposit box. These items are not in your character's inventory during games but can be retrieved at any time in-between games.",
+      "cost": 20,
+      "special_rules": "Storage, Persistent",
+      "details": "Secure storage for valuables between missions."
+    },
+    {
+      "name": "Psyka",
+      "description": "A powerful drug, distilled from the spinal fluids of potent psychics. When used, the user may use a single arcane ability of their choice, regardless of any required traits. After each use roll 1D10; if the result is greater than the number of times the character has ever used Psyka, nothing happens. If the result is lower, then the user has become addicted. Psyka now has no effect, but they must use a dose at the start of each game or not take part.",
+      "cost": 40,
+      "special_rules": "One-use, Psychic Enhancement, Addiction Risk",
+      "details": "Highly dangerous psychic-enhancing substance with severe addiction potential."
+    }
+  ],
+  "special_rules": {
+    "One-use": "This item is consumed after a single use.",
+    "Healing": "Restores hit points to the character.",
+    "Psychic": "Affects or requires psychic abilities.",
+    "Blood Sacrifice": "Requires the user to sacrifice hit points for an effect.",
+    "Skill Boost": "Temporarily increases character skills.",
+    "Addictive": "Repeated use can lead to addiction with negative consequences.",
+    "Storage": "Provides a way to store other items.",
+    "Persistent": "Effect continues between games.",
+    "Psychic Enhancement": "Temporarily grants access to psychic abilities.",
+    "Addiction Risk": "Risk of addiction increases with each use."
+  }
+}

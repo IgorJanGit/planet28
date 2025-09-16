@@ -1,6 +1,6 @@
 {
   "Name": "test1",
-  "Points": 10,
+  "Points": 165,
   "Skills": {
     "Agility": 1,
     "Fighting": 1,
@@ -17,12 +17,7 @@
   "Backstory": "",
   "Injuries": "",
   "CampaignPoints": "",
-  "Weapons": [
-    "Power fist",
-    "Psy-staff",
-    "Electro maul",
-    "Heavy slug pistol",
-    "Fist",
-    "Fist"
-  ]
+  "Weapons": [],
+  "Armour": [],
+  "MiscItems": []
 }

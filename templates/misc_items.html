@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planet28 - Weapons</title>
+    <title>Planet28 - Miscellaneous Items Selection</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             background-color: #f8f8f8;
         }
         h1, h2, h3 {
@@ -148,7 +148,7 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .add-weapon-btn {
+        .add-item-btn {
             background-color: #4CAF50;
             color: white;
             padding: 8px 16px;
@@ -161,12 +161,12 @@
             min-width: 80px;
             text-align: center;
         }
-        .add-weapon-btn:hover {
+        .add-item-btn:hover {
             background-color: #388e3c;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transform: translateY(-1px);
         }
-        .remove-weapon-btn {
+        .remove-item-btn {
             background-color: #f44336;
             color: white;
             padding: 8px 16px;
@@ -179,7 +179,7 @@
             min-width: 80px;
             text-align: center;
         }
-        .remove-weapon-btn:hover {
+        .remove-item-btn:hover {
             background-color: #d32f2f;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transform: translateY(-1px);
@@ -208,34 +208,52 @@
             font-size: 16px;
             margin-top: 0;
         }
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+        .item-description {
+            max-width: 350px;
         }
-        .action-button {
-            padding: 10px 15px;
+        .add-item-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
             border-radius: 4px;
-            text-decoration: none;
+            cursor: pointer;
             font-weight: bold;
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            min-width: 80px;
+            text-align: center;
         }
-        .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        .add-item-btn:hover {
+            background-color: #388e3c;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
         }
-        .rules-button {
-            background-color: #2196F3;
+        .remove-item-btn {
+            background-color: #f44336;
             color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            min-width: 80px;
+            text-align: center;
         }
-        .costs-button {
-            background-color: #4CAF50;
-            color: white;
+        .remove-item-btn:hover {
+            background-color: #d32f2f;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
         }
-
+        
         /* Responsive styles */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
             .filter-section {
                 padding: 12px;
             }
@@ -256,11 +274,6 @@
                 justify-content: space-between;
             }
             
-            .action-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
             th, td {
                 padding: 8px 6px;
                 font-size: 13px;
@@ -272,7 +285,7 @@
                 white-space: nowrap;
             }
             
-            .add-weapon-btn, .remove-weapon-btn {
+            .add-item-btn, .remove-item-btn {
                 padding: 6px 10px;
                 min-width: 60px;
                 font-size: 12px;
@@ -285,6 +298,10 @@
             
             h1 {
                 font-size: 1.5em;
+            }
+            
+            .item-description {
+                max-width: none;
             }
         }
         
@@ -306,11 +323,6 @@
                 font-size: 0.9em;
             }
             
-            .weapon-count span {
-                font-size: 0.8em !important;
-                padding: 3px 6px !important;
-            }
-            
             .rule-description {
                 padding: 8px;
                 font-size: 12px;
@@ -322,68 +334,39 @@
     <a href="/edit_character/{{ warband }}/{{ character_name }}" class="back-link">← Back to Character</a>
     
     <div class="page-header">
-        <h1>Weapons Selection</h1>
-        <p>Select weapons to equip your character. Click on special rules for detailed descriptions.</p>
+        <h1>Miscellaneous Items Selection</h1>
+        <p>Select items to equip your character. Click on special rules for detailed descriptions.</p>
     </div>
     
-    <div class="action-buttons">
-        <a href="/weapon_rules/{{ warband }}" class="action-button rules-button">View Weapon Special Rules</a>
-        <a href="/weapon_cost_table/{{ warband }}" class="action-button costs-button">View Special Rules Cost Table</a>
-    </div>
-    
-    <div class="filter-section">
-        <h3>Filter Weapons</h3>
-        <div class="filter-controls">
-            <div class="filter-group">
-                <label for="typeFilter">Weapon Type:</label>
-                <select id="typeFilter" class="filter-select">
-                    <option value="">All Types</option>
-                    {% for type in weapon_types %}
-                    <option value="{{ type }}">{{ type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-actions">
-                <button onclick="filterWeapons()" class="filter-button apply">Apply Filters</button>
-                <button onclick="resetFilters()" class="filter-button reset">Reset</button>
-            </div>
-        </div>
-    </div>
-    
-    <table id="weaponsTable">
+    <table id="itemsTable">
         <thead>
             <tr>
-                <th class="sortable" onclick="sortTable(0)">Weapon <span class="sort-icon">↕</span></th>
-                <th class="sortable" onclick="sortTable(1)">Type <span class="sort-icon">↕</span></th>
-                <th class="sortable" onclick="sortTable(2)">Size <span class="sort-icon">↕</span></th>
-                <th class="sortable" onclick="sortTable(3)">Damage <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(0)">Item <span class="sort-icon">↕</span></th>
+                <th>Description</th>
                 <th>Special Rules</th>
-                <th class="sortable" onclick="sortTable(5)">Range <span class="sort-icon">↕</span></th>
-                <th class="sortable" onclick="sortTable(6)">Cost <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortTable(3)">Cost <span class="sort-icon">↕</span></th>
                 <th>Equipped</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            {% for weapon in weapons %}
-            <tr class="weapon-row" data-type="{{ weapon.type }}">
-                <td>{{ weapon.name }}</td>
-                <td>{{ weapon.type }}</td>
-                <td>{{ weapon.size }}</td>
-                <td>{{ weapon.damage }}</td>
+            {% for item in misc_items_list %}
+            <tr class="item-row">
+                <td><strong>{{ item.name }}</strong></td>
+                <td class="item-description">{{ item.description }}</td>
                 <td>
-                    {% if weapon.special_rules %}
-                        {% for rule in weapon.special_rules.split(',') %}
+                    {% if item.special_rules %}
+                        {% for rule in item.special_rules.split(',') %}
                             {% set rule_clean = rule.strip() %}
                             {% if rule_clean %}
                                 <span class="special-rule" onclick="toggleRuleDescription(this, '{{ rule_clean }}')">{{ rule_clean }}</span>{% if not loop.last %}, {% endif %}
                             {% endif %}
                         {% endfor %}
-                        {% for rule in weapon.special_rules.split(',') %}
+                        {% for rule in item.special_rules.split(',') %}
                             {% set rule_clean = rule.strip() %}
                             {% if rule_clean %}
                                 <div class="rule-description" data-rule="{{ rule_clean|replace(' ', '-') }}">
-                                    <strong>{{ rule_clean }}:</strong> {{ special_rules.get(rule_clean, "No description available.") }}
+                                    <strong>{{ rule_clean }}:</strong> {{ special_rules_data.get(rule_clean, "No description available.") }}
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -391,13 +374,12 @@
                         -
                     {% endif %}
                 </td>
-                <td>{{ weapon.range if weapon.range else "-" }}</td>
-                <td>{{ weapon.cost }} credits</td>
+                <td>{{ item.cost }} credits</td>
                 <td>
-                    {% if weapon_counts.get(weapon.name, 0) > 0 %}
-                    <div class="weapon-count" style="display: flex; align-items: center; justify-content: center;">
+                    {% if item.name in character_misc_items %}
+                    <div class="item-count" style="display: flex; align-items: center; justify-content: center;">
                         <span style="padding: 4px 8px; background-color: #3f51b5; color: white; border-radius: 12px; font-weight: bold; font-size: 0.9em;">
-                            × {{ weapon_counts.get(weapon.name) }}
+                            × 1
                         </span>
                     </div>
                     {% else %}
@@ -405,14 +387,14 @@
                     {% endif %}
                 </td>
                 <td>
-                    <form method="POST" action="/add_weapon/{{ warband }}/{{ character_name }}">
-                        <input type="hidden" name="weapon_name" value="{{ weapon.name }}">
-                        <button type="submit" class="add-weapon-btn">Add</button>
+                    <form method="POST" action="/add_misc_item/{{ warband }}/{{ character_name }}" class="add-form">
+                        <input type="hidden" name="item_name" value="{{ item.name }}">
+                        <button type="submit" class="add-item-btn">Add</button>
                     </form>
-                    {% if weapon_counts.get(weapon.name, 0) > 0 %}
-                    <form method="POST" action="/remove_weapon/{{ warband }}/{{ character_name }}" style="margin-top: 5px;">
-                        <input type="hidden" name="weapon_name" value="{{ weapon.name }}">
-                        <button type="submit" class="remove-weapon-btn" style="background-color: #f44336; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.12); min-width: 80px; text-align: center;">Remove</button>
+                    {% if item.name in character_misc_items %}
+                    <form method="POST" action="/remove_misc_item/{{ warband }}/{{ character_name }}" class="remove-form" style="margin-top: 5px;">
+                        <input type="hidden" name="item_name" value="{{ item.name }}">
+                        <button type="submit" class="remove-item-btn">Remove</button>
                     </form>
                     {% endif %}
                 </td>
@@ -420,114 +402,102 @@
             {% endfor %}
         </tbody>
     </table>
-    
+
     <script>
-        function toggleRuleDescription(clickedElement, rule) {
-            const ruleName = rule.replace(/ /g, '-');
+        // Function to toggle rule description visibility
+        function toggleRuleDescription(clickedElement, ruleName) {
+            const ruleDataAttr = ruleName.replace(/ /g, '-');
             // Find the closest description within the same cell
             const cell = clickedElement.closest('td');
-            const ruleElement = cell.querySelector(`.rule-description[data-rule="${ruleName}"]`);
+            const ruleElement = cell.querySelector(`.rule-description[data-rule="${ruleDataAttr}"]`);
             
+            // Toggle this rule description only
             if (ruleElement) {
-                if (ruleElement.style.display === 'block') {
-                    ruleElement.style.display = 'none';
-                } else {
-                    ruleElement.style.display = 'block';
-                }
+                ruleElement.style.display = ruleElement.style.display === 'block' ? 'none' : 'block';
             }
         }
         
-        function filterWeapons() {
-            const typeFilter = document.getElementById('typeFilter').value.trim();
-            const rows = document.querySelectorAll('#weaponsTable tbody tr');
-            
-            rows.forEach(row => {
-                const type = row.getAttribute('data-type');
-                let show = true;
-                
-                if (typeFilter && !type.includes(typeFilter)) {
-                    show = false;
-                }
-                
-                row.style.display = show ? '' : 'none';
-            });
-        }
-        
-        function resetFilters() {
-            document.getElementById('typeFilter').value = '';
-            const rows = document.querySelectorAll('#weaponsTable tbody tr');
-            rows.forEach(row => {
-                row.style.display = '';
-            });
-        }
-        
-        // Table sorting functionality
-        let currentSortColumn = -1;
-        let sortDirection = 1; // 1 for ascending, -1 for descending
-        
+        // Table sorting function
         function sortTable(columnIndex) {
-            const table = document.getElementById('weaponsTable');
-            const headers = table.querySelectorAll('th.sortable');
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const table = document.getElementById('itemsTable');
+            let switching = true;
+            let shouldSwitch = false;
+            let i, x, y;
+            let switchCount = 0;
+            let dir = 'asc';
             
-            // Reset all headers
-            headers.forEach(header => {
-                header.classList.remove('sorted-asc', 'sorted-desc');
+            // Reset all sort icons
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
             });
             
-            // Toggle sort direction if clicking on the same column
-            if (currentSortColumn === columnIndex) {
-                sortDirection *= -1;
-            } else {
-                sortDirection = 1;
-                currentSortColumn = columnIndex;
-            }
-            
-            // Update header class
-            if (sortDirection === 1) {
-                headers[columnIndex].classList.add('sorted-asc');
-                headers[columnIndex].querySelector('.sort-icon').textContent = '↑';
-            } else {
-                headers[columnIndex].classList.add('sorted-desc');
-                headers[columnIndex].querySelector('.sort-icon').textContent = '↓';
-            }
-            
-            // Sort the rows
-            rows.sort((a, b) => {
-                let aValue = a.cells[columnIndex].textContent.trim();
-                let bValue = b.cells[columnIndex].textContent.trim();
+            while (switching) {
+                switching = false;
+                const rows = table.rows;
                 
-                // Special handling for cost column
-                if (columnIndex === 6) {
-                    // Extract numbers from cost column (e.g., "15 credits" -> 15)
-                    aValue = parseInt(aValue.replace(/[^0-9-]/g, '')) || 0;
-                    bValue = parseInt(bValue.replace(/[^0-9-]/g, '')) || 0;
-                    return sortDirection * (aValue - bValue);
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName('td')[columnIndex];
+                    y = rows[i + 1].getElementsByTagName('td')[columnIndex];
+                    
+                    // Get the text content for comparison
+                    let xContent = x.textContent.toLowerCase();
+                    let yContent = y.textContent.toLowerCase();
+                    
+                    // If it's a numeric column, convert to numbers for sorting
+                    if (columnIndex === 3) {
+                        xContent = parseFloat(xContent.replace(/[^\d.-]/g, '')) || 0;
+                        yContent = parseFloat(yContent.replace(/[^\d.-]/g, '')) || 0;
+                    }
+                    
+                    if (dir === 'asc') {
+                        if (xContent > yContent) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === 'desc') {
+                        if (xContent < yContent) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
                 }
                 
-                // Default string comparison
-                return sortDirection * aValue.localeCompare(bValue);
-            });
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchCount++;
+                } else {
+                    if (switchCount === 0 && dir === 'asc') {
+                        dir = 'desc';
+                        switching = true;
+                    }
+                }
+            }
             
-            // Reorder the rows
-            rows.forEach(row => {
-                tbody.appendChild(row);
-            });
+            // Update the sort icon and header class
+            const header = table.rows[0].getElementsByTagName('th')[columnIndex];
+            header.classList.add(dir === 'asc' ? 'sorted-desc' : 'sorted-asc');
+            
+            // Update sort icon text
+            const sortIcon = header.querySelector('.sort-icon');
+            if (sortIcon) {
+                sortIcon.textContent = dir === 'asc' ? '↓' : '↑';
+            }
         }
 
-        // Add event listeners to all "Add" buttons once the DOM is loaded
+        // Add AJAX functionality for item forms
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all add weapon forms
-            const addForms = document.querySelectorAll('form[action^="/add_weapon/"]');
-            const removeForms = document.querySelectorAll('form[action^="/remove_weapon/"]');
+            // Get all add item forms
+            const addForms = document.querySelectorAll('.add-form');
+            const removeForms = document.querySelectorAll('.remove-form');
             
             // Add event listener to each add form
             addForms.forEach(form => {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault(); // Prevent the default form submission
                     
-                    const weaponName = form.querySelector('input[name="weapon_name"]').value;
+                    const itemName = form.querySelector('input[name="item_name"]').value;
                     const submitBtn = form.querySelector('button[type="submit"]');
                     const originalBtnText = submitBtn.textContent;
                     
@@ -545,40 +515,47 @@
                     })
                     .then(response => {
                         if (response.ok) {
-                            // Success - weapon added
+                            // Success - item added
                             submitBtn.textContent = 'Added!';
                             submitBtn.style.backgroundColor = '#4CAF50';
                             
                             // Update the count cell
                             const row = form.closest('tr');
-                            const countCell = row.querySelector('td:nth-child(8)');
+                            const countCell = row.querySelector('td:nth-child(5)');
                             
                             if (countCell) {
-                                // Get current count or default to 0
-                                let currentText = countCell.textContent.trim();
-                                let currentCount = 0;
+                                // Update count display
+                                countCell.innerHTML = '<div class="item-count" style="display: flex; align-items: center; justify-content: center;">' +
+                                    '<span style="padding: 4px 8px; background-color: #3f51b5; color: white; border-radius: 12px; font-weight: bold; font-size: 0.9em;">' +
+                                    '× 1</span></div>';
+                            }
+                            
+                            // Show the remove button
+                            const actionCell = row.querySelector('td:nth-child(6)');
+                            if (!actionCell.querySelector('.remove-form')) {
+                                const removeForm = document.createElement('form');
+                                removeForm.className = 'remove-form';
+                                removeForm.method = 'POST';
+                                removeForm.action = form.action.replace('add_misc_item', 'remove_misc_item');
+                                removeForm.style.marginTop = '5px';
                                 
-                                if (currentText.includes('×')) {
-                                    // Extract number from "× N" format
-                                    currentCount = parseInt(currentText.match(/× (\d+)/)[1]);
-                                }
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'item_name';
+                                hiddenInput.value = itemName;
                                 
-                                // Increment count
-                                currentCount++;
+                                const removeBtn = document.createElement('button');
+                                removeBtn.type = 'submit';
+                                removeBtn.className = 'remove-item-btn';
+                                removeBtn.textContent = 'Remove';
                                 
-                                // Update display
-                                if (currentCount === 1) {
-                                    // First item - replace "None" with count badge
-                                    countCell.innerHTML = '<div class="weapon-count" style="display: flex; align-items: center; justify-content: center;">' +
-                                        '<span style="padding: 4px 8px; background-color: #3f51b5; color: white; border-radius: 12px; font-weight: bold; font-size: 0.9em;">' +
-                                        '× 1</span></div>';
-                                } else {
-                                    // Update existing count
-                                    const countSpan = countCell.querySelector('span');
-                                    if (countSpan) {
-                                        countSpan.textContent = `× ${currentCount}`;
-                                    }
-                                }
+                                removeForm.appendChild(hiddenInput);
+                                removeForm.appendChild(removeBtn);
+                                
+                                actionCell.appendChild(removeForm);
+                                
+                                // Add event listener to the new remove form
+                                setupRemoveFormListener(removeForm);
                             }
                             
                             // Reset button after 0.8 seconds
@@ -615,12 +592,12 @@
                 });
             });
             
-            // Add event listener to each remove form
-            removeForms.forEach(form => {
+            // Function to set up remove form event listeners
+            function setupRemoveFormListener(form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault(); // Prevent the default form submission
                     
-                    const weaponName = form.querySelector('input[name="weapon_name"]').value;
+                    const itemName = form.querySelector('input[name="item_name"]').value;
                     const submitBtn = form.querySelector('button[type="submit"]');
                     const originalBtnText = submitBtn.textContent;
                     
@@ -638,48 +615,23 @@
                     })
                     .then(response => {
                         if (response.ok) {
-                            // Success - weapon removed
+                            // Success - item removed
                             submitBtn.textContent = 'Removed!';
                             submitBtn.style.backgroundColor = '#4CAF50'; // Success green
                             
                             // Update the count cell
                             const row = form.closest('tr');
-                            const countCell = row.querySelector('td:nth-child(8)');
+                            const countCell = row.querySelector('td:nth-child(5)');
                             
                             if (countCell) {
-                                // Get current count or default to 0
-                                let currentText = countCell.textContent.trim();
-                                let currentCount = 0;
-                                
-                                if (currentText.includes('×')) {
-                                    // Extract number from "× N" format
-                                    currentCount = parseInt(currentText.match(/× (\d+)/)[1]);
-                                }
-                                
-                                // Decrement count
-                                currentCount--;
-                                
-                                // Update display
-                                if (currentCount <= 0) {
-                                    // No more of this weapon - show "None"
-                                    countCell.innerHTML = '<span style="color: #999;">None</span>';
-                                    
-                                    // Reset button after showing feedback briefly
-                                    setTimeout(() => {
-                                        // Hide the remove button when no weapons left
-                                        form.style.display = 'none';
-                                    }, 800);
-                                } else {
-                                    // Update existing count
-                                    const countSpan = countCell.querySelector('span');
-                                    if (countSpan) {
-                                        countSpan.textContent = `× ${currentCount}`;
-                                    }
-                                }
+                                // No more of this item - show "None"
+                                countCell.innerHTML = '<span style="color: #999;">None</span>';
                             }
                             
-                            // Reset button after 0.8 seconds, but keep it red
+                            // Reset button after showing feedback briefly
                             setTimeout(() => {
+                                // Hide the remove button when no items left
+                                form.style.display = 'none';
                                 submitBtn.textContent = originalBtnText;
                                 submitBtn.disabled = false;
                                 submitBtn.style.backgroundColor = '#f44336'; // Keep it red
@@ -710,6 +662,11 @@
                         }, 800);
                     });
                 });
+            }
+            
+            // Add event listener to each remove form
+            removeForms.forEach(form => {
+                setupRemoveFormListener(form);
             });
         });
     </script>
