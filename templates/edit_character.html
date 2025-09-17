@@ -14,6 +14,7 @@
 {% endmacro %}
 
 <!DOCTYPE html>
+<!-- TIMESTAMP TEST: 2025-09-16-15:30 - If you see this timestamp, the template is loading -->
 <html>
 <head>
     <meta charset="UTF-8">
@@ -28,25 +29,84 @@
             padding: 10px;
         }
         .sheet-box {
-            border: 3px solid #000;
-            max-width: 580px;
+            border: 8px solid #000;
+            box-shadow: 0 0 0 2px #000, 0 6px 12px rgba(0,0,0,0.4);
+            max-width: 95%;
             width: 100%;
             margin: 36px auto 24px auto;
             padding: 0;
             background: #fff;
             overflow: hidden;
             box-sizing: border-box;
+            position: relative;
+        }
+        
+        /* Responsive breakpoints */
+        @media (min-width: 768px) {
+            .sheet-box {
+                max-width: 90%;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .sheet-box {
+                max-width: 85%;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .sheet-box {
+                max-width: 80%;
+            }
+        }
+        
+        @media (min-width: 1400px) {
+            .sheet-box {
+                max-width: 75%;
+            }
+        }
+        .sheet-box::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 4px solid #000;
+            z-index: -1;
         }
         .sheet-row, .sheet-header, .sheet-section {
-            border-bottom: 1px solid #000;
-            padding: 10px 18px;
+            border-bottom: 2px solid #000;
+            padding: 12px 18px;
         }
         .sheet-header { 
             text-align: center; 
             font-weight: bold; 
-            font-size: 1.2em; 
+            font-size: 1.3em; 
             background: #fff; 
-            border-bottom: 1px solid #000; 
+            border-bottom: 3px solid #000; 
+            padding: 15px 18px;
+        }
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .sheet-table th, .sheet-table td {
+            border: 2px solid #000;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .sheet-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .sheet-section-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #000;
         }
         .sheet-table { 
             width: 100%; 
@@ -508,10 +568,226 @@
         textarea {
             border-radius: 0;
         }
+        
+        /* Responsive improvements for tables and inputs */
+        @media (max-width: 767px) {
+            .sheet-table input[type="number"] {
+                font-size: 1.2em;
+                width: 60px;
+                padding: 4px 18px 4px 4px;
+            }
+            
+            .sheet-table th, .sheet-table td {
+                padding: 6px 4px;
+                font-size: 0.9em;
+            }
+            
+            .sheet-row, .sheet-header, .sheet-section {
+                padding: 8px 12px;
+            }
+            
+            .sheet-header {
+                font-size: 1.1em;
+                padding: 10px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .sheet-table input[type="number"] {
+                font-size: 1.1em;
+                width: 50px;
+                padding: 4px 15px 4px 4px;
+            }
+            
+            .sheet-table th, .sheet-table td {
+                padding: 4px 2px;
+                font-size: 0.85em;
+            }
+            
+            .sheet-row, .sheet-header, .sheet-section {
+                padding: 6px 8px;
+            }
+        }
+        
+        /* Responsive styles for equipment tables */
+        @media (max-width: 1024px) {
+            .weapons-table {
+                font-size: 0.9em;
+            }
+            
+            .weapons-table th, .weapons-table td {
+                padding: 6px 8px;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .weapons-table {
+                font-size: 0.75em;
+                width: 100%;
+                min-width: 600px; /* Force horizontal scroll to preserve all columns */
+                display: table;
+                overflow-x: auto;
+                border: 1px solid #ddd;
+            }
+            
+            .weapons-table th, .weapons-table td {
+                padding: 4px 5px;
+                white-space: nowrap;
+                min-width: 60px;
+            }
+            
+            /* Ensure table container scrolls horizontally */
+            .weapons-table thead,
+            .weapons-table tbody {
+                display: table-header-group;
+            }
+            
+            .weapons-table tr {
+                display: table-row;
+            }
+            
+            .weapons-table th,
+            .weapons-table td {
+                display: table-cell;
+            }
+            
+            /* Make sure container allows horizontal scrolling */
+            .table-view,
+            #weapon-table-container,
+            #armour-table-container,
+            #misc-items-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .weapons-table {
+                font-size: 0.7em;
+                min-width: 550px;
+            }
+            
+            .weapons-table th, .weapons-table td {
+                padding: 3px 4px;
+                min-width: 55px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .weapons-table {
+                font-size: 0.65em;
+                min-width: 500px;
+            }
+            
+            .weapons-table th, .weapons-table td {
+                padding: 3px 4px;
+                min-width: 50px;
+            }
+            
+            /* Keep all columns but make them very compact */
+            .table-weapon-name {
+                min-width: 60px;
+                word-break: break-word;
+                font-size: 0.95em;
+            }
+            
+            /* Compress special rules but keep visible */
+            .weapons-table th:nth-child(6),
+            .weapons-table td:nth-child(6) {
+                max-width: 80px;
+                font-size: 0.9em;
+                word-break: break-word;
+            }
+            
+            /* Make remove buttons smaller */
+            .table-remove-btn {
+                padding: 2px 4px;
+                font-size: 0.8em;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .weapons-table {
+                font-size: 0.6em;
+                min-width: 450px;
+            }
+            
+            .weapons-table th, .weapons-table td {
+                padding: 2px 3px;
+                min-width: 45px;
+            }
+            
+            .table-weapon-name {
+                min-width: 50px;
+            }
+            
+            .table-remove-btn {
+                padding: 1px 3px;
+                font-size: 0.75em;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .weapons-table {
+                font-size: 0.55em;
+                min-width: 400px;
+            }
+            
+            .weapons-table th, .weapons-table td {
+                padding: 2px;
+                min-width: 40px;
+            }
+        }
+        
+        /* Equipment section responsiveness */
+        @media (max-width: 767px) {
+            .sheet-flex {
+                display: block !important;
+            }
+            
+            .sheet-half {
+                width: 100% !important;
+                margin-bottom: 15px;
+                border-right: none !important;
+                border-bottom: 1px solid #000;
+            }
+            
+            .sheet-half:last-child {
+                border-bottom: none;
+            }
+            
+            .subsection-title {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px;
+            }
+            
+            .add-weapon-btn, .add-armour-btn {
+                font-size: 0.9em;
+                padding: 6px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .subsection-title {
+                font-size: 0.9em;
+            }
+            
+            .add-weapon-btn, .add-armour-btn {
+                font-size: 0.85em;
+                padding: 4px 8px;
+            }
+        }
+        
+        /* Ensure container adapts to viewport */
+        body {
+            margin: 0;
+            padding: 5px;
+        }
     </style>
 </head>
 <body style="background:#f4f4f4;">
-<div style="width: 100%; max-width: 580px; margin: 10px auto 0;">
+<div style="width: 100%; max-width: 95%; margin: 10px auto 0; padding: 0 10px; box-sizing: border-box;">
     <a href="/warband/{{ warband }}" style="display: inline-block; margin-bottom: 10px; color: #0066cc; text-decoration: none; font-weight: bold;">← Back to Warband</a>
 </div>
 <div style="text-align:center;margin-bottom:10px;font-size:1.1em;">
@@ -526,7 +802,7 @@
         <div class="sheet-header">Character Sheet</div>
         
         <div class="sheet-row">
-            <table class="sheet-table" style="border-collapse: collapse;">
+            <table class="sheet-table">
                 <tr>
                     <td style="width:70%; text-align:left; padding:8px;"><b>Name:</b> <input type="text" name="Name" value="{{ character['Name'] }}" style="width:calc(100% - 60px); font-weight:bold; font-size:1em; border:1px solid #888; padding:2px 4px;"></td>
                     <td style="width:30%; text-align:left; padding:8px;"><b>Points cost:</b> <input type="number" id="points-field" name="Points" value="{{ character['Points'] }}" style="width:80px; font-weight:bold; background-color:#f8f8f8; color:#333;" readonly></td>
@@ -554,7 +830,6 @@
                     Homebrew mode: {{ 'ON' if homebrew_enabled else 'OFF' }}
                 </span>
             </div>
-            </div>
         </div>
 
         <div class="sheet-row">
@@ -580,7 +855,7 @@
         
         <div class="sheet-section">
             <div class="sheet-section-title">Traits:</div>
-            <div id="trait-list-box" style="min-height: 80px; border: 1px solid #000; padding: 8px;">
+            <div id="trait-list-box" style="min-height: 80px; padding: 8px;">
                 <!-- We'll use a div for visible traits instead of hidden input -->
                 <div id="trait-inputs-container"></div>
                 <ul id="trait-list" class="sheet-list" style="margin-bottom:6px;">
@@ -614,7 +889,7 @@
         
         <div class="sheet-section">
             <div class="sheet-section-title">Abilities:</div>
-            <div id="ability-list-box" style="min-height: 80px; border: 1px solid #000; padding: 8px;">
+            <div id="ability-list-box" style="min-height: 80px; padding: 8px;">
                 <!-- We'll use a div for visible abilities instead of hidden input -->
                 <div id="ability-inputs-container"></div>
                 <ul id="ability-list" class="sheet-list" style="margin-bottom:6px;">
@@ -654,7 +929,7 @@
             <div class="sheet-flex">
                 <div class="sheet-half">
                     <div class="sheet-section-title">Equipment & Weapons:</div>
-                    <div style="min-height: 150px; border: 1px solid #000; padding: 8px;">
+                    <div style="min-height: 150px; padding: 8px;">
                         <!-- Weapons section -->
                         <div style="margin-bottom: 15px;">
                             <div style="font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;" class="subsection-title">
@@ -857,11 +1132,11 @@
                 </div>
                 <div class="sheet-half">
                     <div class="sheet-section-title">Injuries:</div>
-                    <div style="min-height: 100px; border: 1px solid #000; padding: 8px;">
+                    <div style="min-height: 100px; padding: 8px;">
                         <textarea name="Injuries" rows="4" style="width:100%;height:84px;resize:none;border:none;background:transparent;padding:0;">{{ character['Injuries'] if character['Injuries'] is defined else '' }}</textarea>
                     </div>
                     <div class="sheet-section-title" style="margin-top:10px;">Campaign points:</div>
-                    <div style="min-height: 40px; border: 1px solid #000; padding: 8px;">
+                    <div style="min-height: 40px; padding: 8px;">
                         <input type="text" name="CampaignPoints" value="{{ character['CampaignPoints'] if character['CampaignPoints'] is defined else '' }}" style="width:100%;height:24px;border:none;background:transparent;padding:0;">
                     </div>
                 </div>

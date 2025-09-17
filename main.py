@@ -1282,5 +1282,9 @@ async def get_special_rule_api(rule_name: str):
     print(f"Description retrieved: {description}")
     return {"rule": rule_name, "description": description}
 
+@app.get("/test_border", response_class=HTMLResponse)
+def test_border(request: Request):
+    return templates.TemplateResponse("test_border.html", {"request": request})
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

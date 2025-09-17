@@ -1,6 +1,6 @@
 {
   "Name": "test1",
-  "Points": 48,
+  "Points": 40,
   "Skills": {
     "Agility": 1,
     "Fighting": 1,
@@ -11,18 +11,19 @@
   "Speed": 10,
   "Hit-points": 20,
   "Traits": [
-    "Ammo smith",
-    "Big"
+    "Brawler",
+    "Ammo smith"
   ],
-  "Abilities": [
-    "Throw"
-  ],
+  "Abilities": [],
   "Equipment": [],
+  "Weapons": [
+    "Fist",
+    "Heavy club"
+  ],
   "Notes": "",
   "Backstory": "",
   "Injuries": "",
   "CampaignPoints": "",
-  "Weapons": [],
   "Armour": [],
   "MiscItems": []
 }
